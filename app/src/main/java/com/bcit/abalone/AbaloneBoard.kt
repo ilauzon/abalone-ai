@@ -1,36 +1,34 @@
 package com.bcit.abalone
 
-import androidx.compose.ui.graphics.Color
+data class Cell(val letter: Char, val number: Int, var piece:Piece = Piece.Empty)
 
-val player1 = setOf("I5", "I6", "I7", "I8", "I9", "H4", "H5", "H6", "H7", "H8", "H9", "G5", "G6", "G7")
-val player2 = setOf("A1", "A2", "A3", "A4", "A5", "B1","B2", "B3", "B4", "B5", "B6", "C3", "C4", "C5")
-
-fun createBoard(): List<List<Pair<String, Color?>>> {
-    val row = 'I' downTo 'A'
+fun createBoard(): List<List<Cell>> {
+    val letter = 'I' downTo 'A'
     val columnLength = listOf(5, 6, 7, 8, 9, 8, 7, 6, 5)
-    val board = mutableListOf<List<Pair<String, Color?>>>()
-    for ((rowIndex, r) in row.withIndex()) {
-        val currentRow = mutableListOf<Pair<String, Color?>>()
-        val startColumn = when(r) {
+    val board = mutableListOf<List<Cell>>()
+
+    for ((index, c) in letter.withIndex()) {
+        val cells = mutableListOf<Cell>()
+        val start = when(c) {
             'I' -> 5
             'H' -> 4
             'G' -> 3
             'F' -> 2
             else -> 1
         }
-        for(c in startColumn until(startColumn+columnLength[rowIndex])){
-            val label = "$r$c"
-            val color = when{
-                label in player1 -> Color.Red
-                label in player2 -> Color.Blue
-                else -> null
-
+        for (i in start until (start + columnLength[index])) {
+            val piece = when (c) {
+                'I', 'H' -> Piece.Blue
+                'G' -> if (i in 5..7) Piece.Blue else Piece.Empty
+                'A', 'B' -> Piece.Red
+                'C' -> if (i in 3..5) Piece.Red else Piece.Empty
+                else -> Piece.Empty
             }
-            currentRow.add(label to color)
+            val cell = Cell(c, i, piece)
+            cells.add(cell)
         }
-        board.add(currentRow)
+        board.add(cells)
     }
     return board
 }
-
 
