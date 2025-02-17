@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.times
 @Composable
 fun AbaloneGame(viewModel: AbaloneViewModel) {
     val board = viewModel.boardState.value
+    val currentPlayer = viewModel.currentPlayer.value
     val selectedCells = remember { mutableStateListOf<Cell>() }
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -49,8 +50,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 .weight(2f)
                 .background(Color.White)
                 .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -67,8 +67,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                                 modifier = Modifier
                                     .size(35.dp)
                                     .clickable {
-                                        if (cell.piece == Piece.Empty){
+                                        if (cell.piece != currentPlayer ){
                                             viewModel.moveMarbles(selectedCells, cell)
+                                            selectedCells.clear()
                                         }else {
                                             viewModel.selectMarbles(selectedCells, cell)
                                         }
@@ -95,7 +96,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Spacer(modifier = Modifier.height(10.dp))
             Row {
 
-                Button(onClick = { viewModel.boardState.value = createBoard() }, modifier = Modifier.padding(1.dp)) {
+                Button(onClick = { viewModel.boardState.value=createBoard() }, modifier = Modifier.padding(1.dp)) {
                     Text("Start / Reset")
                 }
                 Button(onClick = { /* Reset logic here */ }, modifier = Modifier.padding(1.dp)) {

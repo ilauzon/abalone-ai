@@ -75,20 +75,86 @@ class AbaloneViewModel : ViewModel() {
                     } else {
                         // Invalid move, restore state
                         visitedPositions.clear()
-                        return
                     }
                 }
 
                 selectedCells.clear()
                 switchPlayer()
             }
-        }
-    }
+            // target cell is opponent
+        } else if (targetCell.piece != Piece.Empty && targetCell.piece != currentPlayer.value) {
+            val targetLetter = targetCell.letter
+            val targetNumber = targetCell.number
+            val targetPiece = targetCell.piece
 
+            var letterDiff = 0
+            var numberDiff = 0
+            if (selectedCells.size > 0){
+                letterDiff = targetLetter - selectedCells[0].letter
+                numberDiff = targetNumber - selectedCells[0].number
+            }
+
+            if (selectedCells.size == 2) {
+                val nextCell = boardState.value.flatten()
+                    .find { it.letter == targetLetter + letterDiff && it.number == targetNumber + numberDiff }
+                if (nextCell == null) {
+                    selectedCells.forEach{cell ->
+                        val updateCell = boardState.value.flatten().find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff)}
+                        updateCell?.piece = currentPlayer.value
+                        cell.piece = Piece.Empty
+                    }
+                    println("Opponent out")
+                    switchPlayer()
+                } else if (nextCell.piece == Piece.Empty) {
+                    selectedCells.forEach { cell ->
+                        val updateCell = boardState.value.flatten()
+                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
+                        updateCell?.piece = currentPlayer.value
+                    }
+                    nextCell.piece = targetPiece
+                    selectedCells[1].piece = Piece.Empty
+                    switchPlayer()
+                }
+            } else if (selectedCells.size == 3) {
+                val nextCell = boardState.value.flatten()
+                    .find { it.letter == targetLetter + letterDiff && it.number == targetNumber + numberDiff }
+                if (nextCell == null) {
+                    selectedCells.forEach { cell ->
+                        val updateCell = boardState.value.flatten()
+                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
+                        updateCell?.piece = currentPlayer.value
+                        cell.piece = Piece.Empty
+                    }
+                    println("Opponent out")
+                    switchPlayer()
+                } else if (nextCell.piece == Piece.Empty) {
+                    selectedCells.forEach { cell ->
+                        val updateCell = boardState.value.flatten()
+                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
+                        updateCell?.piece = currentPlayer.value
+                    }
+                    nextCell.piece = targetPiece
+                    selectedCells[2].piece = Piece.Empty
+                    switchPlayer()
+                } else if(nextCell.piece == targetPiece){
+                    val nextnextCell = boardState.value.flatten()
+                        .find { it.letter == targetLetter + 2*letterDiff && it.number == targetNumber + 2*numberDiff }
+                    if (nextnextCell == null) {
+                        targetCell.piece = currentPlayer.value
+                        selectedCells[2].piece = Piece.Empty
+                        println("Opponent out")
+                        switchPlayer()
+                    }
+                }
+            }
+        }
+
+    }
 
     fun switchPlayer() {
         currentPlayer.value = if (currentPlayer.value == Piece.Blue) Piece.Red else Piece.Blue
     }
+
 }
 
 
