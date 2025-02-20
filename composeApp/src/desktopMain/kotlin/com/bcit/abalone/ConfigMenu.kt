@@ -18,10 +18,8 @@ fun ConfigMenu() {
     var selectedLayout by remember { mutableStateOf("Standard") }
     var selectedMode by remember { mutableStateOf("Vs. Human") }
     var player1Color by remember { mutableStateOf("Black") }
-    var p1MoveLimit by remember { mutableStateOf(50f) }
-    var p1TimeLimit by remember { mutableStateOf(300f) }
-    var p2MoveLimit by remember { mutableStateOf(50f) }
-    var p2TimeLimit by remember { mutableStateOf(300f) }
+    var moveLimit by remember { mutableStateOf(50f) }
+    var timeLimit by remember { mutableStateOf(300f) }
 
     Column(
         modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -61,33 +59,17 @@ fun ConfigMenu() {
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Move Limit (P1): ${p1MoveLimit.toInt()}", style = MaterialTheme.typography.h6)
+                Text("Move Limit: ${moveLimit.toInt()}", style = MaterialTheme.typography.h6)
                 Slider(
-                    value = p1MoveLimit,
-                    onValueChange = { p1MoveLimit = it },
+                    value = moveLimit,
+                    onValueChange = { moveLimit = it },
                     valueRange = 10f..100f)
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("Time Limit (P1): ${p1TimeLimit.toInt()} sec (${(p1TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
+                Text("Time Limit: ${timeLimit.toInt()} sec (${(timeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
-                    value = p1TimeLimit,
-                    onValueChange = { p1TimeLimit = it },
-                    valueRange = 60f..600f)
-            }
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Move Limit (P2): ${p2MoveLimit.toInt()}", style = MaterialTheme.typography.h6)
-                Slider(
-                    value = p2MoveLimit,
-                    onValueChange = { p2MoveLimit = it },
-                    valueRange = 10f..100f)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Time Limit (P2): ${p2TimeLimit.toInt()} sec (${(p2TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
-                Slider(
-                    value = p2TimeLimit,
-                    onValueChange = { p2TimeLimit = it },
+                    value = timeLimit,
+                    onValueChange = { timeLimit = it },
                     valueRange = 60f..600f)
             }
         }
