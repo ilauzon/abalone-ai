@@ -34,6 +34,12 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val board = viewModel.boardState.value
     val currentPlayer = viewModel.currentPlayer.value
     val selectedCells = remember { mutableStateListOf<Cell>() }
+    val blueMoveNumber = viewModel.blueMoveNumber.value
+    val redMoveNumber = viewModel.redMoveNumber.value
+    val bluePiecesTaken = viewModel.bluePiecesTaken.value
+    val redPiecesTaken = viewModel.redPiecesTaken.value
+    val blueTimeRemaining = viewModel.blueTimeRemaining.value
+    val redTimeRemaining = viewModel.redTimeRemaining.value
 
     Row(modifier = Modifier.fillMaxSize()) {
         // Left panel for table including marbles out, moves, and time.
@@ -65,11 +71,17 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 ) {
                     Column{
                         TableCell("BLUE")
-                        TableCell("0")
-                        TableCell("0/30")
-                        TableCell("0m:00:0s")
-
-                        Box(modifier = Modifier.background(Color.Blue).fillMaxWidth().height(25.dp))
+                        TableCell("$bluePiecesTaken")
+                        TableCell("$blueMoveNumber/30")
+                        TableCell(formatTime(blueTimeRemaining))
+                        if (currentPlayer == Piece.Blue) {
+                            Box(
+                                modifier = Modifier.background(Color.Blue).fillMaxWidth()
+                                    .height(25.dp)
+                            )
+                        } else {
+                            TableCell("")
+                        }
                     }
                 }
                 Box(modifier = Modifier
@@ -79,10 +91,17 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 ) {
                     Column(verticalArrangement = Arrangement.SpaceEvenly){
                         TableCell("RED")
-                        TableCell("0")
-                        TableCell("0/30")
-                        TableCell("0m:00:0s")
-                        TableCell("")
+                        TableCell("$redPiecesTaken")
+                        TableCell("$redMoveNumber/30")
+                        TableCell(formatTime(redTimeRemaining))
+                        if (currentPlayer == Piece.Red) {
+                            Box(
+                                modifier = Modifier.background(Color.Red).fillMaxWidth()
+                                    .height(25.dp)
+                            )
+                        } else {
+                            TableCell("")
+                        }
                     }
                 }
             }
@@ -178,7 +197,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     .width(80.dp)
                 ) {
                     Column{
-                        TableCell("")
+                        TableCell("Player")
                         TableCell("")
                         TableCell("")
                         TableCell("")
@@ -192,12 +211,12 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column{
+                        TableCell("Path")
                         TableCell("")
                         TableCell("")
                         TableCell("")
-                        TableCell("")
-                        TableCell("[F2]+Y")
-                        TableCell("[A1, A2, A3]+X")
+                        TableCell("[F2]->[F3]")
+                        TableCell("[A1, A2, A3]->[B1, B2, B3]")
                     }
                 }
                 Box(modifier = Modifier
@@ -206,7 +225,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column{
-                        TableCell("")
+                        TableCell("Duration")
                         TableCell("")
                         TableCell("")
                         TableCell("")
