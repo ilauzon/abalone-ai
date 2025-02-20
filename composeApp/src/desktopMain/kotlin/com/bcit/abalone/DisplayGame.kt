@@ -194,7 +194,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Row{
                 Box(modifier = Modifier
                     .background(Color.White)
-                    .width(80.dp)
+                    .width(60.dp)
                 ) {
                     Column{
                         TableCell("Player")
@@ -207,7 +207,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 }
                 Box(modifier = Modifier
                     .background(Color.White)
-                    .width(130.dp),
+                    .width(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column{
@@ -221,7 +221,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 }
                 Box(modifier = Modifier
                     .background(Color.White)
-                    .width(130.dp),
+                    .width(80.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column{
@@ -239,12 +239,12 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     modifier = Modifier
                         .border(BorderStroke(0.25.dp, Color.Black))
                         .background(Color.White)
-                        .width(210.dp),
+                        .width(260.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
                     Text("Total", modifier = Modifier.padding(1.5.dp, 0.dp))
                 }
-                TableCell("1m 34.99s")
+                TableCell("29m 34.99s")
             }
         }
     }
@@ -258,6 +258,6 @@ fun TableCell(text:String){
             .border(BorderStroke(0.25.dp, Color.Black))
             .fillMaxWidth()
     ) {
-        Text(text, modifier = Modifier.padding(1.5.dp, 0.dp))
+        Text(text, modifier = Modifier.padding(1.5.dp, 0.dp), fontSize = 14.sp)
     }
 }
