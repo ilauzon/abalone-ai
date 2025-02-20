@@ -216,7 +216,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         TableCell("")
                         TableCell("")
                         TableCell("[F2]->[F3]")
-                        TableCell("[A1, A2, A3]->[B1, B2, B3]")
+                        TableCell("[A1, A2]->[B1, B2]")
                     }
                 }
                 Box(modifier = Modifier
