@@ -20,4 +20,15 @@ fun main() = application {
     ) {
         App()
     }
+
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "config menu",
+        state = rememberWindowState(
+            width = 720.dp,
+            height = 720.dp
+        )
+    ) {
+        ConfigMenu()
+    }
 }
