@@ -1,7 +1,19 @@
 package com.bcit.abalone
 
+/**
+ * Represents the state of a cell on the game board.
+ *
+ * @property letter the Y coordinate of the cell.
+ * @property number the X coordinate of the cell.
+ * @property piece the contents of the cell.
+ */
 data class Cell(val letter: Char, val number: Int, var piece:Piece = Piece.Empty)
 
+/**
+ * Initializes the game board piece layout.
+ *
+ * @return the game board.
+ */
 fun createBoard(): List<List<Cell>> {
     val letter = 'I' downTo 'A'
     val columnLength = listOf(5, 6, 7, 8, 9, 8, 7, 6, 5)

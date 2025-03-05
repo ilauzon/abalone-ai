@@ -3,6 +3,9 @@ package com.bcit.abalone
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
+/**
+ * The viewmodel for the game board.
+ */
 class AbaloneViewModel : ViewModel() {
     var boardState = mutableStateOf(createBoard())
     var currentPlayer = mutableStateOf(Piece.Blue)
@@ -16,10 +19,6 @@ class AbaloneViewModel : ViewModel() {
     val totalTimePerPlayer = 30*60*1000L
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
-
-
-
-
 
     fun selectMarbles(selectedCells: MutableList<Cell>, cell: Cell) {
         if (selectedCells.isEmpty()) {
@@ -57,6 +56,13 @@ class AbaloneViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Move the marbles in the selected cells to a new set of cells.
+     *
+     * @param selectedCells the cells that contain the marbles to move.
+     * @param targetCell the cell to move the first marble in the list to. The direction of
+     * motion is replicated by the rest of the marbles in the list.
+     */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
 
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
@@ -184,31 +190,30 @@ class AbaloneViewModel : ViewModel() {
 
     }
 
+    /**
+     * Ends the current player's turn.
+     */
     fun switchPlayer() {
         currentPlayer.value = if (currentPlayer.value == Piece.Blue) Piece.Red else Piece.Blue
         moveStartTime.value = System.currentTimeMillis()
     }
-
 }
 
-
-fun isCellNeighbor(currentCell: Cell, targetCell: Cell): Boolean {
+/**
+ * Determines if the currentCell and targetCell are immediate neighbours.
+ *
+ * @param currentCell a cell.
+ * @param targetCell a cell.
+ * @return true if the two cells are immediate neighbours, false if otherwise.
+ */
+private fun isCellNeighbor(currentCell: Cell, targetCell: Cell): Boolean {
     val letterDiff = kotlin.math.abs(currentCell.letter - targetCell.letter)
     val numberDiff = kotlin.math.abs(currentCell.number - targetCell.number)
     return (letterDiff == 1 && numberDiff == 0) || (letterDiff == 0 && numberDiff == 1) || (letterDiff == 1 && numberDiff == 1)
 }
 
-fun isThirdCell(currentCells: MutableList<Cell>, addCell: Cell): Boolean {
+private fun isThirdCell(currentCells: MutableList<Cell>, addCell: Cell): Boolean {
     val letterDiff = currentCells[0].letter - currentCells[1].letter
     val numberDiff = currentCells[0].number - currentCells[1].number
     return addCell.letter == currentCells[1].letter - letterDiff && addCell.number == currentCells[1].number - numberDiff
-}
-
-fun formatTime(milliseconds: Long): String {
-    val totalSeconds = milliseconds / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    val centiseconds = (milliseconds / 10) % 100
-
-    return String.format("%02d:%02d:%02d", minutes, seconds, centiseconds)
 }

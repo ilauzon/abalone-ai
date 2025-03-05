@@ -1,3 +1,7 @@
+/**
+ * Contains the AbaloneGame and TableCell Composables.
+ */
+
 package com.bcit.abalone
 
 import androidx.compose.foundation.BorderStroke
@@ -29,6 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 
+/**
+ * The view for the game board.
+ */
 @Composable
 fun AbaloneGame(viewModel: AbaloneViewModel) {
     val board = viewModel.boardState.value
@@ -250,6 +257,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     }
 }
 
+/**
+ * The view for a single cell in a plain table.
+ */
 @Composable
 fun TableCell(text:String){
     Box(
@@ -260,4 +270,13 @@ fun TableCell(text:String){
     ) {
         Text(text, modifier = Modifier.padding(1.5.dp, 0.dp), fontSize = 14.sp)
     }
+}
+
+private fun formatTime(milliseconds: Long): String {
+    val totalSeconds = milliseconds / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    val centiseconds = (milliseconds / 10) % 100
+
+    return String.format("%02d:%02d:%02d", minutes, seconds, centiseconds)
 }
