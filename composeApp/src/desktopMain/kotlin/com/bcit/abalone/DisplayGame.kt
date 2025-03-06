@@ -58,6 +58,12 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 .background(Color.LightGray)
                 .fillMaxHeight()
         ) {
+            Text("P1 Score")
+            Box(
+
+            ) {
+                Text("$bluePiecesTaken", fontSize = 90.sp)
+            }
             Row{
                 Box(modifier = Modifier
                     .background(Color.White)
@@ -189,6 +195,12 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 .background(Color.LightGray)
                 .fillMaxHeight()
         ) {
+            Text("P2 Score")
+            Box(
+
+            ) {
+                Text("$redPiecesTaken", fontSize = 90.sp)
+            }
             Box(
                 modifier = Modifier
                     .border(BorderStroke(0.25.dp, Color.Black))

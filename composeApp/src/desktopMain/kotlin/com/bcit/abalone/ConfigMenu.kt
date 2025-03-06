@@ -34,7 +34,8 @@ fun ConfigMenu() {
     var moveLimit by remember { mutableStateOf(50f) }
     /** The time limit of the game. TODO: allow the user to specify time limit per player.
      * */
-    var timeLimit by remember { mutableStateOf(300f) }
+    var p1TimeLimit by remember { mutableStateOf(300f) }
+    var p2TimeLimit by remember { mutableStateOf(60f) }
 
     Column(
         modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -81,11 +82,17 @@ fun ConfigMenu() {
                     valueRange = 10f..100f)
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("Time Limit: ${timeLimit.toInt()} sec (${(timeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
+                Text("P1 Time Limit: ${p1TimeLimit.toInt()} sec (${(p1TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
-                    value = timeLimit,
-                    onValueChange = { timeLimit = it },
+                    value = p1TimeLimit,
+                    onValueChange = { p1TimeLimit = it },
                     valueRange = 60f..600f)
+
+                Text("P2 Time Limit: ${p2TimeLimit.toInt()} sec (${(p2TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
+                Slider(
+                    value = p2TimeLimit,
+                    onValueChange = { p2TimeLimit = it },
+                    valueRange = 5f..60f)
             }
         }
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
