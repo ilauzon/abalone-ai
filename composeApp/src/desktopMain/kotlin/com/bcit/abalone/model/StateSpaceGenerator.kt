@@ -32,7 +32,7 @@ class StateSpaceGenerator {
         * @return a set of __valid__ actions to take from the given state.
         */
        fun actions(state: StateRepresentation): Set<Action> {
-           val board = state.board.board
+           val board = state.board.cells
            val actions = mutableSetOf<Action>()
 
            // filter player nodes
