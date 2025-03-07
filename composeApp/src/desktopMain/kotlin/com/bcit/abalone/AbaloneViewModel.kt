@@ -1,6 +1,6 @@
 package com.bcit.abalone
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 
 
@@ -17,6 +17,13 @@ class AbaloneViewModel : ViewModel() {
     val totalTimePerPlayer = 30 * 60 * 1000L
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
+
+    var p1TimeLimit by mutableStateOf(60f)
+    var p2TimeLimit by mutableStateOf(60f)
+    var selectedLayout by mutableStateOf("Standard")
+    var selectedMode by mutableStateOf("Vs. Human")
+    var player1Color by mutableStateOf("Black")
+    var moveLimit by mutableStateOf(50f)
 
     /* this is for selecting marbles, including choose one or two or three.
         when choosing the second one, it will check if it is a neighbor cell. if not, it will clear the list.
@@ -174,6 +181,21 @@ class AbaloneViewModel : ViewModel() {
     fun switchPlayer() {
         currentPlayer.value = if (currentPlayer.value == Piece.Blue) Piece.Red else Piece.Blue
         moveStartTime.value = System.currentTimeMillis()
+    }
+    fun updateSettings(
+        p1Time: Float,
+        p2Time: Float,
+        layout: String,
+        mode: String,
+        p1Color: String,
+        moves: Float
+    ){
+        p1TimeLimit = p1Time
+        p2TimeLimit = p2Time
+        selectedLayout = layout
+        selectedMode = mode
+        player1Color = p1Color
+        moveLimit = moves
     }
 }
 
