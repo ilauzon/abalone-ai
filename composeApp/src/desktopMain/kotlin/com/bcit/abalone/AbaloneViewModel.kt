@@ -14,12 +14,16 @@ class AbaloneViewModel : ViewModel() {
     var moveStartTime = mutableStateOf(System.currentTimeMillis())
     var moveDuration = mutableStateOf(0L)
 
-    val totalTimePerPlayer = 30L
+    val totalTimePerPlayer = 30 * 60 * 1000L
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
 
     var p1TimeLimit by mutableStateOf(60f)
     var p2TimeLimit by mutableStateOf(60f)
+    var selectedLayout by mutableStateOf("Standard")
+    var selectedMode by mutableStateOf("Vs. Human")
+    var player1Color by mutableStateOf("Black")
+    var moveLimit by mutableStateOf(50f)
 
 
     fun selectMarbles(selectedCells: MutableList<Cell>, cell: Cell) {
@@ -252,11 +256,20 @@ class AbaloneViewModel : ViewModel() {
         moveStartTime.value = System.currentTimeMillis()
     }
 
-    fun updateP1TimeLimit(p1TimePerTurn : Float){
-        p1TimeLimit = p1TimePerTurn
-    }
-    fun updateP2TimeLimit(p2TimePerTurn : Float) {
-        p2TimeLimit = p2TimePerTurn
+    fun updateSettings(
+        p1Time: Float,
+        p2Time: Float,
+        layout: String,
+        mode: String,
+        p1Color: String,
+        moves: Float
+        ){
+        p1TimeLimit = p1Time
+        p2TimeLimit = p2Time
+        selectedLayout = layout
+        selectedMode = mode
+        player1Color = p1Color
+        moveLimit = moves
     }
 
 }

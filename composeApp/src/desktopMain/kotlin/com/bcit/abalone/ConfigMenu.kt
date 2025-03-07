@@ -85,18 +85,25 @@ fun ConfigMenu(viewModel: AbaloneViewModel) {
                 Text("P1 Time Limit: ${p1TimeLimit.toInt()} sec (${(p1TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
                     value = p1TimeLimit,
-                    onValueChange = { viewModel.updateP1TimeLimit(it) },
+                    onValueChange = { newValue ->
+                        p1TimeLimit = newValue
+                    },
                     valueRange = 5f..180f)
 
                 Text("P2 Time Limit: ${p2TimeLimit.toInt()} sec (${(p2TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
                     value = p2TimeLimit,
-                    onValueChange = { viewModel.updateP2TimeLimit(it) },
+                    onValueChange = { newValue ->
+                        p2TimeLimit = newValue
+                    },
                     valueRange = 5f..60f)
             }
         }
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Button(onClick = {println("")}) {
+            Button(onClick = {
+                viewModel.updateSettings(p1TimeLimit, p2TimeLimit, selectedLayout, selectedMode, player1Color, moveLimit)
+                println("Settings applied! ${p1TimeLimit}, ${p2TimeLimit}")
+            }) {
                 Text("Apply Settings")
             }
         }
