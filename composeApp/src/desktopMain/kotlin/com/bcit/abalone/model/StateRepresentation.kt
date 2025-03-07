@@ -16,6 +16,15 @@ class StateRepresentation(
     val movesRemaining: Int,
     val currentPlayer: Piece
 ) {
+
+    init {
+        if (players.keys.contains(Piece.Empty)) {
+            throw IllegalArgumentException(
+                "Piece.Empty is an invalid key for players; players can only be Black or White."
+            )
+        }
+    }
+
     /**
      * Move the pieces in the specified coordinates in a direction.
      *
@@ -36,14 +45,15 @@ class BoardState() {
      * The game board. The value of a particular cell in accessed via a map, with the coordinates
      * as the key.
      */
-    val board: HashMap<Coordinate, Piece?> = HashMap()
+    val board: HashMap<Coordinate, Piece> = HashMap()
 
     init {
         for (l: LetterCoordinate in LetterCoordinate.entries.drop(1)) {
             for (n: NumberCoordinate in NumberCoordinate.entries.slice(l.min.ordinal..l.max.ordinal)) {
-                board[Coordinate(l, n)] = null
+                board[Coordinate(l, n)] = Piece.Empty
             }
         }
+        board[Coordinate.offBoard] = Piece.OffBoard
     }
 
     constructor(layout: Layout) : this() {

@@ -13,7 +13,37 @@ class Coordinate(
         val offBoard = Coordinate(LetterCoordinate.NULL, NumberCoordinate.NULL)
     }
 
-    fun moveX(amount: Int): Coordinate {
+    fun move(direction: MoveDirection): Coordinate {
+        val newCoordinate = when(direction) {
+            MoveDirection.PosX -> moveX(1)
+            MoveDirection.NegX -> moveX(-1)
+            MoveDirection.PosY -> moveY(1)
+            MoveDirection.NegY -> moveY(-1)
+            MoveDirection.PosZ -> moveZ(1)
+            MoveDirection.NegZ -> moveZ(-1)
+        }
+        return newCoordinate
+    }
+
+    /**
+     * Provides the adjacent coordinates, i.e. the immediate neighbours of the coordinate.
+     *
+     * @return adjacent coordinates.
+     */
+    fun adjacentCoordinates(): Array<Pair<Coordinate, MoveDirection>> {
+        val adjacent = listOf(
+            Pair(move(MoveDirection.PosX), MoveDirection.PosX),
+            Pair(move(MoveDirection.NegX), MoveDirection.NegX),
+            Pair(move(MoveDirection.PosY), MoveDirection.PosY),
+            Pair(move(MoveDirection.NegY), MoveDirection.NegY),
+            Pair(move(MoveDirection.PosZ), MoveDirection.PosZ),
+            Pair(move(MoveDirection.NegZ), MoveDirection.NegZ),
+        )
+        val onBoard = adjacent.filter { it.first != offBoard }
+        return onBoard.toTypedArray()
+    }
+
+    private fun moveX(amount: Int): Coordinate {
         val newCoordinate = Coordinate(letter, number + amount)
         if (
             newCoordinate.number == NumberCoordinate.NULL
@@ -25,7 +55,7 @@ class Coordinate(
         return newCoordinate
     }
 
-    fun moveY(amount: Int): Coordinate {
+    private fun moveY(amount: Int): Coordinate {
         val newCoordinate = Coordinate(letter + amount, number)
         if (
             newCoordinate.letter == LetterCoordinate.NULL
@@ -37,7 +67,7 @@ class Coordinate(
         return newCoordinate
     }
 
-    fun moveZ(amount: Int): Coordinate {
+    private fun moveZ(amount: Int): Coordinate {
         val newCoordinate = Coordinate(letter + amount, number + amount)
         if (
             newCoordinate.letter == LetterCoordinate.NULL
@@ -60,6 +90,7 @@ class Coordinate(
         return other.letter == letter && other.number == number
     }
 
+    // TODO verify that this produces unique hashes for all possible coordinates.
     override fun hashCode(): Int {
         return letter.ordinal * 16 + number.ordinal
     }
@@ -83,7 +114,7 @@ enum class NumberCoordinate(
     operator fun plus(amount: Int): NumberCoordinate {
         val sum = ordinal + amount
         if (sum < ONE.ordinal || sum > NINE.ordinal) return NULL
-        return entries[sum];
+        return entries[sum]
     }
 
     operator fun minus(amount: Int): NumberCoordinate {
@@ -111,7 +142,7 @@ enum class LetterCoordinate(
     operator fun plus(amount: Int): LetterCoordinate {
         val sum = ordinal + amount
         if (sum < A.ordinal || sum > I.ordinal) return NULL
-        return entries[sum];
+        return entries[sum]
     }
 
     operator fun minus(amount: Int): LetterCoordinate {
