@@ -10,8 +10,7 @@ kotlin {
     jvm("desktop")
     
     sourceSets {
-        val desktopMain by getting
-        
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -22,13 +21,19 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
+
+        val desktopMain by getting
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
+        val desktopTest by getting
+        desktopTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
     }
 }
-
 
 compose.desktop {
     application {

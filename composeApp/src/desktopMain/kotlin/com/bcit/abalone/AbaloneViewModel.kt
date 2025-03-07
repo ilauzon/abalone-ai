@@ -1,6 +1,6 @@
 package com.bcit.abalone
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
 
@@ -18,51 +18,36 @@ class AbaloneViewModel : ViewModel() {
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
 
-    var p1TimeLimit by mutableStateOf(60f)
-    var p2TimeLimit by mutableStateOf(60f)
-    var selectedLayout by mutableStateOf("Standard")
-    var selectedMode by mutableStateOf("Vs. Human")
-    var player1Color by mutableStateOf("Black")
-    var moveLimit by mutableStateOf(50f)
-
-
+    /* this is for selecting marbles, including choose one or two or three.
+        when choosing the second one, it will check if it is a neighbor cell. if not, it will clear the list.
+        when choosing the third one, it will check if the third one is on the line and the three cells are in order. if not, it will clear the list.
+     */
     fun selectMarbles(selectedCells: MutableList<Cell>, cell: Cell) {
-        if (selectedCells.isEmpty()) {
-            if (cell.piece != Piece.Empty && cell.piece == currentPlayer.value) {
-                selectedCells.add(cell)
-            }
-        } else {
-            if (selectedCells.contains(cell)) {
-                selectedCells.remove(cell)
-            } else {
-                if (selectedCells.size == 1) {
-                    if (isCellNeighbor(
-                            selectedCells.last(),
-                            cell
-                        ) && cell.piece != Piece.Empty && cell.piece == currentPlayer.value
-                    ) {
-                        selectedCells.add(cell)
-                    } else if (!isCellNeighbor(selectedCells.last(), cell)) {
-                        selectedCells.clear()
-                        selectedCells.add(cell)
-                    }
-                } else if (selectedCells.size == 2) {
-                    if (isThirdCell(
-                            selectedCells,
-                            cell
-                        ) && cell.piece != Piece.Empty && cell.piece == currentPlayer.value
-                    ) {
-                        selectedCells.add(cell)
-                    } else if (!isThirdCell(selectedCells, cell)) {
-                        selectedCells.clear()
-                        selectedCells.add(cell)
-                    }
-                }
-            }
+        if (cell.piece != currentPlayer.value) {
+            return
+        }
+        when (selectedCells.size) {
+            0 -> selectedCells.add(cell)
+            1 -> handleSelection(selectedCells, cell) { cells, newCell -> isCellNeighbor(cells.last(), newCell) }
+            2 -> handleSelection(selectedCells, cell) { cells, newCell -> isThirdCell(cells, newCell) }
+            else -> selectedCells.clear()
         }
     }
 
+    private fun handleSelection(selectedCells: MutableList<Cell>, cell: Cell, validation: (MutableList<Cell>, Cell) -> Boolean) {
+        if (validation(selectedCells, cell) && cell.piece == currentPlayer.value) {
+            selectedCells.add(cell)
+        } else {
+            selectedCells.clear()
+            selectedCells.add(cell)
+        }
+    }
+
+    /*  Move marbles method includes move one piece to empty cell; and two or three
+        pieces to empty cell and push opponent piece.
+     */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
+        if (selectedCells.isEmpty()) return
 
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
         if (currentPlayer.value == Piece.Blue) {
@@ -71,206 +56,125 @@ class AbaloneViewModel : ViewModel() {
             redTimeRemaining.value -= moveDuration.value
         }
 
-        // one marble can only move to empty cell
-        if (targetCell.piece == Piece.Empty && selectedCells.isNotEmpty()) {
+        val (letterDiff, numberDiff, moveOrder) = determineMoveDirection(selectedCells, targetCell) ?: return
+
+        if (targetCell.piece == Piece.Empty) {
             if (selectedCells.size == 1 && isCellNeighbor(selectedCells[0], targetCell)) {
                 targetCell.piece = selectedCells[0].piece
                 selectedCells[0].piece = Piece.Empty
-                if (currentPlayer.value == Piece.Blue) blueMoveNumber.value++ else redMoveNumber.value++
+                incrementMoveCount()
                 selectedCells.clear()
                 switchPlayer()
+            } else if (selectedCells.size in 2..3) {
+                val possibleMoveList = twoOrThreeMarbleMovePossibilities(selectedCells, boardState.value)
+                if (targetCell !in possibleMoveList) return
+                performMove(moveOrder, letterDiff, numberDiff)
+            }
+        } else if (targetCell.piece != currentPlayer.value) {
+            handlePushMove(selectedCells, targetCell, letterDiff, numberDiff, moveOrder)
+        }
+    }
 
-                // the following is for two or three marbles
-            } else if ((selectedCells.size == 2 || selectedCells.size == 3)) {
-                val possibleMoveList =
-                    twoOrThreeMarbleMovePossibilities(selectedCells, boardState.value)
-                if (!possibleMoveList.contains(targetCell)) {
-                    return
-                } else {
-                    var letterDiff = 0
-                    var numberDiff = 0
-                    var moveOrder: List<Cell> = emptyList()
+    // This helper method check if the target cell is a neighbor cell of the first selected cell or the last selected cell.
+    private fun determineMoveDirection(selectedCells: MutableList<Cell>, targetCell: Cell): Triple<Int, Int, List<Cell>>? {
+        if (selectedCells.isEmpty()) { return null }
+        val letterDiff: Int
+        val numberDiff: Int
+        val moveOrder: List<Cell>
 
-                    if (isCellNeighbor(selectedCells[0], targetCell)) {
-                        letterDiff = targetCell.letter - selectedCells[0].letter
-                        numberDiff = targetCell.number - selectedCells[0].number
-                        moveOrder = selectedCells // Move in normal order
-                    } else if (isCellNeighbor(selectedCells.last(), targetCell)) {
-                        letterDiff = targetCell.letter - selectedCells.last().letter
-                        numberDiff = targetCell.number - selectedCells.last().number
-                        moveOrder = selectedCells.reversed() // Move in reverse order
-                    }
+        return if (isCellNeighbor(selectedCells[0], targetCell)) {
+            letterDiff = targetCell.letter - selectedCells[0].letter
+            numberDiff = targetCell.number - selectedCells[0].number
+            moveOrder = selectedCells
+            Triple(letterDiff, numberDiff, moveOrder)
+        } else if (isCellNeighbor(selectedCells.last(), targetCell)) {
+            letterDiff = targetCell.letter - selectedCells.last().letter
+            numberDiff = targetCell.number - selectedCells.last().number
+            moveOrder = selectedCells.reversed()
+            Triple(letterDiff, numberDiff, moveOrder)
+        } else {
+            null
+        }
+    }
 
-                    val newPositions = mutableListOf<Pair<Cell, Cell>>() // Store old and new cell mappings
-                    var isValidMove = true
+    // This helper method moves the selected pieces to the target cells.
+    private fun performMove(moveOrder: List<Cell>, letterDiff: Int, numberDiff: Int) {
+        val movingPieces = moveOrder.map { it to it.piece }
+        movingPieces.forEach { (cell, _) -> cell.piece = Piece.Empty }
 
-                    // Step 1: Temporarily mark moving pieces as "in motion"
-                    val movingPieces = moveOrder.map { it to it.piece }
-                    for ((cell, _) in movingPieces) {
-                        cell.piece = Piece.Empty // Temporarily set it empty
-                    }
-
-                    // Step 2: Check if all moves are valid
-                    for ((cell, originalPiece) in movingPieces) {
-                        val newLetter = cell.letter + letterDiff
-                        val newNumber = cell.number + numberDiff
-
-                        val newCell = boardState.value.flatten()
-                            .find { it.letter == newLetter && it.number == newNumber }
-
-                        if (newCell == null || (newCell.piece != Piece.Empty && newCell !in movingPieces.map { it.first })) {
-                            isValidMove = false // If any new position is not empty and not in motion, move is invalid
-                            break
-                        } else {
-                            newPositions.add(cell to newCell)
-                        }
-                    }
-                    // Step 3: If valid, apply move
-                    if (isValidMove) {
-                        for ((oldCell, newCell) in newPositions.reversed()) { // Process from last to first
-                            newCell.piece = movingPieces.find { it.first == oldCell }?.second ?: Piece.Empty
-                        }
-                    } else {
-                        // Restore pieces if move is invalid
-                        for ((cell, originalPiece) in movingPieces) {
-                            cell.piece = originalPiece
-                        }
-                    }
-
-                    if (isValidMove) {
-                        if (currentPlayer.value == Piece.Blue) blueMoveNumber.value++ else redMoveNumber.value++
-                        selectedCells.clear()
-                        switchPlayer()
-                    }
-                }
+        val newPositions = mutableListOf<Pair<Cell, Cell>>()
+        for ((cell, originalPiece) in movingPieces) {
+            val newCell = boardState.value.flatten().find {
+                it.letter == cell.letter + letterDiff && it.number == cell.number + numberDiff
             }
 
-
-            // target cell is opponent
-        } else if (targetCell.piece != Piece.Empty && targetCell.piece != currentPlayer.value) {
-            val targetLetter = targetCell.letter
-            val targetNumber = targetCell.number
-            val targetPiece = targetCell.piece
-
-            var letterDiff = 0
-            var numberDiff = 0
-            var moveOrder: List<Cell> = emptyList()
-
-            if (isCellNeighbor(selectedCells[0], targetCell)) {
-                letterDiff = targetLetter - selectedCells[0].letter
-                numberDiff = targetNumber - selectedCells[0].number
-                moveOrder = selectedCells // Move in normal order
-            } else if (isCellNeighbor(selectedCells.last(), targetCell)) {
-                letterDiff = targetLetter - selectedCells.last().letter
-                numberDiff = targetNumber - selectedCells.last().number
-                moveOrder = selectedCells.reversed() // Move in reverse order
-            }
-
-            val newPositions = mutableListOf<Pair<Cell, Cell>>() // Store old and new cell mapping
-
-
-            val nextCell = boardState.value.flatten().find { it.letter == targetLetter + letterDiff && it.number == targetNumber + numberDiff }
-
-            // Push Logic for Two Marbles
-            if (selectedCells.size == 2) {
-                if (nextCell == null) {
-                    // Opponent pushed out of board
-                    targetCell.piece = Piece.Empty
-                    moveOrder.forEach { cell ->
-                        val updateCell = boardState.value.flatten()
-                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
-                        updateCell?.piece = currentPlayer.value
-                        cell.piece = Piece.Empty
-                    }
-                    if (currentPlayer.value == Piece.Blue) bluePiecesTaken.value++ else redPiecesTaken.value++
-                    switchPlayer()
-
-                } else if (nextCell.piece == Piece.Empty) {
-                    // Push opponent to the empty space
-                    newPositions.add(targetCell to nextCell)
-                    moveOrder.forEach { cell ->
-                        val updateCell = boardState.value.flatten()
-                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
-                        updateCell?.let { newPositions.add(cell to it) }
-                    }
-                }
-            }
-            // Push Logic for Three Marbles
-            else if (selectedCells.size == 3) {
-                if (nextCell == null) {
-                    // Opponent pushed out of board
-                    targetCell.piece = Piece.Empty
-                    moveOrder.forEach { cell ->
-                        val updateCell = boardState.value.flatten()
-                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
-                        updateCell?.piece = currentPlayer.value
-                        cell.piece = Piece.Empty
-                    }
-                    if (currentPlayer.value == Piece.Blue) redPiecesTaken.value++ else bluePiecesTaken.value++
-                    switchPlayer()
-                } else if (nextCell.piece == Piece.Empty) {
-                    // Push opponent to the empty space
-                    newPositions.add(targetCell to nextCell)
-                    moveOrder.forEach { cell ->
-                        val updateCell = boardState.value.flatten()
-                            .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
-                        updateCell?.let { newPositions.add(cell to it) }
-                    }
-                } else if (nextCell.piece == targetPiece) {
-                    val nextnextCell = boardState.value.flatten().find { it.letter == targetLetter + 2 * letterDiff && it.number == targetNumber + 2 * numberDiff }
-                    if (nextnextCell == null) {
-                        // Two opponent marbles pushed out
-                        newPositions.add(targetCell to nextCell)
-                        moveOrder.forEach { cell ->
-                            val updateCell = boardState.value.flatten()
-                                .find { it.letter == (cell.letter + letterDiff) && it.number == (cell.number + numberDiff) }
-                            updateCell?.let { newPositions.add(cell to it) }
-                        }
-
-                        if (currentPlayer.value == Piece.Blue) redPiecesTaken.value++ else bluePiecesTaken.value++
-                        switchPlayer()
-                    }
-                }
-
-            }
-
-
-            // Apply the moves
-            if (newPositions.isNotEmpty()) {
-                for ((oldCell, newCell) in newPositions.reversed()) {
-                    newCell.piece = oldCell.piece
-                }
-                for ((oldCell, _) in newPositions) {
-                    oldCell.piece = Piece.Empty
-                }
-
-                if (currentPlayer.value == Piece.Blue) blueMoveNumber.value++ else redMoveNumber.value++
-                selectedCells.clear()
-                switchPlayer()
+            if (newCell == null || (newCell.piece != Piece.Empty && newCell !in movingPieces.map { it.first })) {
+                movingPieces.forEach { (oldCell, piece) -> oldCell.piece = piece }
+                return
+            } else {
+                newPositions.add(cell to newCell)
             }
         }
+
+        newPositions.reversed().forEach { (oldCell, newCell) ->
+            newCell.piece = movingPieces.find { it.first == oldCell }?.second ?: Piece.Empty
+        }
+
+        incrementMoveCount()
+        switchPlayer()
+    }
+
+    // this method handles pushing opponent piece.
+    private fun handlePushMove(selectedCells: MutableList<Cell>, targetCell: Cell, letterDiff: Int, numberDiff: Int, moveOrder: List<Cell>) {
+        val nextCell = boardState.value.flatten().find { it.letter == targetCell.letter + letterDiff && it.number == targetCell.number + numberDiff }
+        val nextnextCell = boardState.value.flatten().find { it.letter == targetCell.letter + 2 * letterDiff && it.number == targetCell.number + 2 * numberDiff }
+
+        if (selectedCells.size == 2) {
+            if (nextCell == null) {
+                targetCell.piece = Piece.Empty
+                performMove(moveOrder, letterDiff, numberDiff)
+                updatePiecesTaken()
+            } else if (nextCell.piece == Piece.Empty) {
+                nextCell.piece = targetCell.piece
+                targetCell.piece = Piece.Empty
+                performMove(moveOrder, letterDiff, numberDiff)
+            }
+        } else if (selectedCells.size == 3) {
+            if (nextCell == null) {
+                targetCell.piece = Piece.Empty
+                performMove(moveOrder, letterDiff, numberDiff)
+                updatePiecesTaken()
+            } else if (nextCell.piece == Piece.Empty) {
+                nextCell.piece = targetCell.piece
+                targetCell.piece = Piece.Empty
+                performMove(moveOrder, letterDiff, numberDiff)
+            } else if (nextCell.piece == targetCell.piece) {
+                if (nextnextCell == null) {
+                    targetCell.piece = Piece.Empty
+                    performMove(moveOrder, letterDiff, numberDiff)
+                    updatePiecesTaken()
+                } else if (nextnextCell.piece == Piece.Empty) {
+                    nextnextCell.piece = targetCell.piece
+                    nextCell.piece = targetCell.piece
+                    targetCell.piece = Piece.Empty
+                    performMove(moveOrder, letterDiff, numberDiff)
+                }
+            }
+        }
+    }
+
+    private fun updatePiecesTaken() {
+        if (currentPlayer.value == Piece.Blue) bluePiecesTaken.value++ else redPiecesTaken.value++
+    }
+
+    private fun incrementMoveCount() {
+        if (currentPlayer.value == Piece.Blue) blueMoveNumber.value++ else redMoveNumber.value++
     }
 
     fun switchPlayer() {
         currentPlayer.value = if (currentPlayer.value == Piece.Blue) Piece.Red else Piece.Blue
         moveStartTime.value = System.currentTimeMillis()
     }
-
-    fun updateSettings(
-        p1Time: Float,
-        p2Time: Float,
-        layout: String,
-        mode: String,
-        p1Color: String,
-        moves: Float
-        ){
-        p1TimeLimit = p1Time
-        p2TimeLimit = p2Time
-        selectedLayout = layout
-        selectedMode = mode
-        player1Color = p1Color
-        moveLimit = moves
-    }
-
 }
+
 
