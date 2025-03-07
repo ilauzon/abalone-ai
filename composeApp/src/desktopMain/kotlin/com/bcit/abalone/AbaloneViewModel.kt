@@ -2,6 +2,8 @@ package com.bcit.abalone
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 class AbaloneViewModel : ViewModel() {
@@ -18,6 +20,8 @@ class AbaloneViewModel : ViewModel() {
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
 
+    var isPaused = mutableStateOf(false)
+
     var p1TimeLimit by mutableStateOf(60f)
     var p2TimeLimit by mutableStateOf(60f)
     var selectedLayout by mutableStateOf("Standard")
@@ -25,7 +29,75 @@ class AbaloneViewModel : ViewModel() {
     var player1Color by mutableStateOf("Black")
     var moveLimit by mutableStateOf(50f)
 
-    /* this is for selecting marbles, including choose one or two or three.
+
+    val moveHistory = mutableListOf<MoveRecord>()
+
+    fun resetGame() {
+        boardState.value = createBoard()
+        currentPlayer.value = Piece.Blue
+        blueMoveNumber.value = 0
+        redMoveNumber.value = 0
+        bluePiecesTaken.value = 0
+        redPiecesTaken.value = 0
+        blueTimeRemaining.value = totalTimePerPlayer
+        redTimeRemaining.value = totalTimePerPlayer
+        moveStartTime.value = System.currentTimeMillis()
+        isPaused.value = false
+        moveHistory.clear()
+    }
+
+    fun pauseOrResumeGame() {
+        if (isPaused.value) {
+            // Resume the game
+            moveStartTime.value = System.currentTimeMillis()
+        } else {
+            // Pause the game
+            moveStartTime.value = -1L
+        }
+        isPaused.value = !isPaused.value
+    }
+
+    data class MoveRecord(
+        val previousState: List<List<Cell>>,
+        val previousPlayer: Piece,
+        val blueMoveNumber: Int,
+        val redMoveNumber: Int,
+        val bluePiecesTaken: Int,
+        val redPiecesTaken: Int,
+        val blueTimeRemaining: Long,
+        val redTimeRemaining: Long
+    )
+
+    fun saveGameState() {
+        moveHistory.add(
+            MoveRecord(
+                boardState.value.map { row -> row.map { it.copy() } },
+                currentPlayer.value,
+                blueMoveNumber.value,
+                redMoveNumber.value,
+                bluePiecesTaken.value,
+                redPiecesTaken.value,
+                blueTimeRemaining.value,
+                redTimeRemaining.value
+            )
+        )
+    }
+
+    fun undoLastMove() {
+        if (moveHistory.isNotEmpty()) {
+            val lastMove = moveHistory.removeLast()
+            boardState.value = lastMove.previousState
+            currentPlayer.value = lastMove.previousPlayer
+            blueMoveNumber.value = lastMove.blueMoveNumber
+            redMoveNumber.value = lastMove.redMoveNumber
+            bluePiecesTaken.value = lastMove.bluePiecesTaken
+            redPiecesTaken.value = lastMove.redPiecesTaken
+            blueTimeRemaining.value = lastMove.blueTimeRemaining
+            redTimeRemaining.value = lastMove.redTimeRemaining
+        }
+    }
+
+    /** this is for selecting marbles, including choose one or two or three.
         when choosing the second one, it will check if it is a neighbor cell. if not, it will clear the list.
         when choosing the third one, it will check if the third one is on the line and the three cells are in order. if not, it will clear the list.
      */
@@ -33,11 +105,24 @@ class AbaloneViewModel : ViewModel() {
         if (cell.piece != currentPlayer.value) {
             return
         }
-        when (selectedCells.size) {
-            0 -> selectedCells.add(cell)
-            1 -> handleSelection(selectedCells, cell) { cells, newCell -> isCellNeighbor(cells.last(), newCell) }
-            2 -> handleSelection(selectedCells, cell) { cells, newCell -> isThirdCell(cells, newCell) }
-            else -> selectedCells.clear()
+        else if(isPaused.value) {return}
+        else {
+            when (selectedCells.size) {
+                0 -> selectedCells.add(cell)
+                1 -> handleSelection(
+                    selectedCells,
+                    cell
+                ) { cells, newCell -> isCellNeighbor(cells.last(), newCell) }
+
+                2 -> handleSelection(selectedCells, cell) { cells, newCell ->
+                    isThirdCell(
+                        cells,
+                        newCell
+                    )
+                }
+
+                else -> selectedCells.clear()
+            }
         }
     }
 
@@ -50,11 +135,15 @@ class AbaloneViewModel : ViewModel() {
         }
     }
 
-    /*  Move marbles method includes move one piece to empty cell; and two or three
+    /**  Move marbles method includes move one piece to empty cell; and two or three
         pieces to empty cell and push opponent piece.
      */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
-        if (selectedCells.isEmpty()) return
+        if (selectedCells.isEmpty()) {
+            return
+        }
+
+        saveGameState()
 
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
         if (currentPlayer.value == Piece.Blue) {
@@ -198,5 +287,4 @@ class AbaloneViewModel : ViewModel() {
         moveLimit = moves
     }
 }
-
 
