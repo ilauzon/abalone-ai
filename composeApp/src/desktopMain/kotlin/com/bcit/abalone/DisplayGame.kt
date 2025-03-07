@@ -24,14 +24,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
 
 /**
  * The view for the game board.
@@ -47,6 +54,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val redPiecesTaken = viewModel.redPiecesTaken.value
     val blueTimeRemaining = viewModel.blueTimeRemaining.value
     val redTimeRemaining = viewModel.redTimeRemaining.value
+    val blueTimePerTurn = viewModel.p1TimeLimit
+    val redTimePerTurn = viewModel.p2TimeLimit
 
     Row(modifier = Modifier.fillMaxSize()) {
         // Left panel for table including marbles out, moves, and time.
@@ -131,9 +140,16 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
             // Draw game board
             Column {
-                Text("Time Remaining: 30:00:00",
-                    modifier = Modifier.padding(20.dp),
-                    fontSize = 25.sp)
+//                Text("Time Remaining: 30:00:00",
+//                    modifier = Modifier.padding(20.dp),
+//                    fontSize = 25.sp)
+                if (currentPlayer == Piece.Blue) {
+                    Text("P1")
+                    playerTimer(blueTimePerTurn)
+                } else {
+                    Text("P2")
+                    playerTimer(redTimePerTurn)
+                }
                 board.forEachIndexed { _, row ->
                     Row(
                         horizontalArrangement = Arrangement.Center,
@@ -282,6 +298,31 @@ fun TableCell(text:String){
     ) {
         Text(text, modifier = Modifier.padding(1.5.dp, 0.dp), fontSize = 14.sp)
     }
+}
+fun countDownFlow(startTime: Float) = flow {
+    var time = startTime
+    while(time >= 0) {
+        emit(time)
+        delay(1000L)
+        time--
+    }
+}
+
+@Composable
+fun playerTimer(timePerTurn: Float){
+    var timeLeft by remember { mutableStateOf(timePerTurn) }
+
+    LaunchedEffect(Unit){
+        timeLeft = timePerTurn
+        countDownFlow(timePerTurn).collectLatest { newTime ->
+            timeLeft = newTime
+        }
+    }
+
+    Text(
+        text = "Time left: $timeLeft s",
+        fontSize = 24.sp,
+    )
 }
 
 private fun formatTime(milliseconds: Long): String {

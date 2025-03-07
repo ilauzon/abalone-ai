@@ -29,6 +29,6 @@ fun main() = application {
             height = 720.dp
         )
     ) {
-        ConfigMenu()
+        ConfigMenu(viewModel = AbaloneViewModel())
     }
 }

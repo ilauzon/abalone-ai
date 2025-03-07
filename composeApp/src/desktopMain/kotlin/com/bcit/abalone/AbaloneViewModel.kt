@@ -1,6 +1,6 @@
 package com.bcit.abalone
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 
 
@@ -14,9 +14,12 @@ class AbaloneViewModel : ViewModel() {
     var moveStartTime = mutableStateOf(System.currentTimeMillis())
     var moveDuration = mutableStateOf(0L)
 
-    val totalTimePerPlayer = 30 * 60 * 1000L
+    val totalTimePerPlayer = 30L
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
+
+    var p1TimeLimit by mutableStateOf(60f)
+    var p2TimeLimit by mutableStateOf(60f)
 
 
     fun selectMarbles(selectedCells: MutableList<Cell>, cell: Cell) {
@@ -244,10 +247,16 @@ class AbaloneViewModel : ViewModel() {
         }
     }
 
-
     fun switchPlayer() {
         currentPlayer.value = if (currentPlayer.value == Piece.Blue) Piece.Red else Piece.Blue
         moveStartTime.value = System.currentTimeMillis()
+    }
+
+    fun updateP1TimeLimit(p1TimePerTurn : Float){
+        p1TimeLimit = p1TimePerTurn
+    }
+    fun updateP2TimeLimit(p2TimePerTurn : Float) {
+        p2TimeLimit = p2TimePerTurn
     }
 
 }

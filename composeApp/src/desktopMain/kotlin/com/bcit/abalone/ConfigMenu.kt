@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
  * - The time limit of the game, per player
  */
 @Composable
-fun ConfigMenu() {
+fun ConfigMenu(viewModel: AbaloneViewModel) {
     /** The board layout (Standard, Belgian Daisy, German Daisy). */
     var selectedLayout by remember { mutableStateOf("Standard") }
     /** The game mode (vs. Human, vs. Computer). */
@@ -34,7 +34,7 @@ fun ConfigMenu() {
     var moveLimit by remember { mutableStateOf(50f) }
     /** The time limit of the game. TODO: allow the user to specify time limit per player.
      * */
-    var p1TimeLimit by remember { mutableStateOf(300f) }
+    var p1TimeLimit by remember { mutableStateOf(120f) }
     var p2TimeLimit by remember { mutableStateOf(60f) }
 
     Column(
@@ -85,13 +85,13 @@ fun ConfigMenu() {
                 Text("P1 Time Limit: ${p1TimeLimit.toInt()} sec (${(p1TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
                     value = p1TimeLimit,
-                    onValueChange = { p1TimeLimit = it },
-                    valueRange = 60f..600f)
+                    onValueChange = { viewModel.updateP1TimeLimit(it) },
+                    valueRange = 5f..180f)
 
                 Text("P2 Time Limit: ${p2TimeLimit.toInt()} sec (${(p2TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
                     value = p2TimeLimit,
-                    onValueChange = { p2TimeLimit = it },
+                    onValueChange = { viewModel.updateP2TimeLimit(it) },
                     valueRange = 5f..60f)
             }
         }
