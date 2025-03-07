@@ -56,6 +56,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val redTimeRemaining = viewModel.redTimeRemaining.value
     val blueTimePerTurn = viewModel.p1TimeLimit
     val redTimePerTurn = viewModel.p2TimeLimit
+    val moveLimit = viewModel.moveLimit
 
     Row(modifier = Modifier.fillMaxSize()) {
         // Left panel for table including marbles out, moves, and time.
@@ -94,7 +95,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     Column{
                         TableCell("BLUE")
                         TableCell("$bluePiecesTaken")
-                        TableCell("$blueMoveNumber/30")
+                        TableCell("$blueMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(blueTimeRemaining))
                         if (currentPlayer == Piece.Blue) {
                             Box(
@@ -114,7 +115,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     Column(verticalArrangement = Arrangement.SpaceEvenly){
                         TableCell("RED")
                         TableCell("$redPiecesTaken")
-                        TableCell("$redMoveNumber/30")
+                        TableCell("$redMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(redTimeRemaining))
                         if (currentPlayer == Piece.Red) {
                             Box(
