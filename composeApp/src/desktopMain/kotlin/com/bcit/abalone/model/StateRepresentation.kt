@@ -12,9 +12,9 @@ import com.bcit.abalone.Piece
  */
 class StateRepresentation(
     val board: BoardState,
-    val p1: Player,
-    val p2: Player,
-    var movesRemaining: Int,
+    val players: Map<Piece, Player>,
+    val movesRemaining: Int,
+    val currentPlayer: Piece
 ) {
     /**
      * Move the pieces in the specified coordinates in a direction.
@@ -36,12 +36,12 @@ class BoardState() {
      * The game board. The value of a particular cell in accessed via a map, with the coordinates
      * as the key.
      */
-    val board: HashMap<Coordinate, Piece> = HashMap()
+    val board: HashMap<Coordinate, Piece?> = HashMap()
 
     init {
         for (l: LetterCoordinate in LetterCoordinate.entries.drop(1)) {
             for (n: NumberCoordinate in NumberCoordinate.entries.slice(l.min.ordinal..l.max.ordinal)) {
-                board[Coordinate(l, n)] = Piece.Empty
+                board[Coordinate(l, n)] = null
             }
         }
     }
