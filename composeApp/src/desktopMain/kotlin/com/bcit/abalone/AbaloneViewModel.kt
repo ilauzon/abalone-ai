@@ -47,6 +47,8 @@ class AbaloneViewModel : ViewModel() {
         pieces to empty cell and push opponent piece.
      */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
+        if (selectedCells.isEmpty()) return
+
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
         if (currentPlayer.value == Piece.Blue) {
             blueTimeRemaining.value -= moveDuration.value
@@ -75,6 +77,7 @@ class AbaloneViewModel : ViewModel() {
 
     // This helper method check if the target cell is a neighbor cell of the first selected cell or the last selected cell.
     private fun determineMoveDirection(selectedCells: MutableList<Cell>, targetCell: Cell): Triple<Int, Int, List<Cell>>? {
+        if (selectedCells.isEmpty()) { return null }
         val letterDiff: Int
         val numberDiff: Int
         val moveOrder: List<Cell>
