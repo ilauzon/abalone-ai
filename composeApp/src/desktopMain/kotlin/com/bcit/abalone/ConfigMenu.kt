@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
  * - The time limit of the game, per player
  */
 @Composable
-fun ConfigMenu() {
+fun ConfigMenu(viewModel: AbaloneViewModel) {
     /** The board layout (Standard, Belgian Daisy, German Daisy). */
     var selectedLayout by remember { mutableStateOf("Standard") }
     /** The game mode (vs. Human, vs. Computer). */
@@ -34,7 +34,8 @@ fun ConfigMenu() {
     var moveLimit by remember { mutableStateOf(50f) }
     /** The time limit of the game. TODO: allow the user to specify time limit per player.
      * */
-    var timeLimit by remember { mutableStateOf(300f) }
+    var p1TimeLimit by remember { mutableStateOf(120f) }
+    var p2TimeLimit by remember { mutableStateOf(60f) }
 
     Column(
         modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -81,15 +82,28 @@ fun ConfigMenu() {
                     valueRange = 10f..100f)
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("Time Limit: ${timeLimit.toInt()} sec (${(timeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
+                Text("P1 Time Limit: ${p1TimeLimit.toInt()} sec (${(p1TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
                 Slider(
-                    value = timeLimit,
-                    onValueChange = { timeLimit = it },
-                    valueRange = 60f..600f)
+                    value = p1TimeLimit,
+                    onValueChange = { newValue ->
+                        p1TimeLimit = newValue
+                    },
+                    valueRange = 5f..180f)
+
+                Text("P2 Time Limit: ${p2TimeLimit.toInt()} sec (${(p2TimeLimit / 60).toInt()} min)", style = MaterialTheme.typography.h6)
+                Slider(
+                    value = p2TimeLimit,
+                    onValueChange = { newValue ->
+                        p2TimeLimit = newValue
+                    },
+                    valueRange = 5f..60f)
             }
         }
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Button(onClick = {println("")}) {
+            Button(onClick = {
+                viewModel.updateSettings(p1TimeLimit, p2TimeLimit, selectedLayout, selectedMode, player1Color, moveLimit)
+                println("Settings applied! ${p1TimeLimit}, ${p2TimeLimit}")
+            }) {
                 Text("Apply Settings")
             }
         }
