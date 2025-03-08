@@ -82,7 +82,7 @@ class Coordinate(
         return newCoordinate
     }
 
-    override fun toString(): String = "$letter + $number"
+    override fun toString(): String = "$letter$number"
 
     override fun equals(other: Any?): Boolean {
         if (other == null) return false
@@ -121,6 +121,16 @@ enum class NumberCoordinate(
         return plus(-amount)
     }
 
+    operator fun rangeTo(that: NumberCoordinate): Iterable<NumberCoordinate> {
+        val newRange = (this.ordinal .. that.ordinal).map { enumValues<NumberCoordinate>()[it] }
+        return newRange.asIterable()
+    }
+
+    infix fun downTo(that: NumberCoordinate): Iterable<NumberCoordinate> {
+        val newRange = (this.ordinal downTo  that.ordinal).map { enumValues<NumberCoordinate>()[it] }
+        return newRange.asIterable()
+    }
+
     override fun toString(): String = ordinal.toString()
 }
 
@@ -147,6 +157,16 @@ enum class LetterCoordinate(
 
     operator fun minus(amount: Int): LetterCoordinate {
         return plus(-amount)
+    }
+
+    operator fun rangeTo(that: LetterCoordinate): Iterable<LetterCoordinate> {
+        val newRange = (this.ordinal .. that.ordinal).map { enumValues<LetterCoordinate>()[it] }
+        return newRange.asIterable()
+    }
+
+    infix fun downTo(that: LetterCoordinate): Iterable<LetterCoordinate> {
+        val newRange = (this.ordinal downTo  that.ordinal).map { enumValues<LetterCoordinate>()[it] }
+        return newRange.asIterable()
     }
 
     override fun toString(): String = name

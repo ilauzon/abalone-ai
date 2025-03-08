@@ -21,9 +21,11 @@ class StateSpaceGeneratorTest {
 
     @Test
     fun testActions() {
+        val state = sampleData[0]
         for ((coordinate, piece) in sampleData[0].board.cells) {
-            println("$coordinate $piece")
+//            println("$coordinate $piece")
         }
+        println(state.board)
         TODO("Write tests for action generator")
     }
 }

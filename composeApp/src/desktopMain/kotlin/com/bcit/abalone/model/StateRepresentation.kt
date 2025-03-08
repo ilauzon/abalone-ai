@@ -1,6 +1,8 @@
 package com.bcit.abalone.model
 
 import com.bcit.abalone.Piece
+import com.bcit.abalone.model.LetterCoordinate
+import com.bcit.abalone.model.NumberCoordinate
 import kotlin.ranges.ClosedRange
 import com.bcit.abalone.model.LetterCoordinate as LetterC
 import com.bcit.abalone.model.NumberCoordinate as NumberC
@@ -58,7 +60,7 @@ class BoardState {
         when (layout) {
             Layout.STANDARD -> setBoard(generateStandardLayout())
             Layout.BELGIAN_DAISY -> setBoard(generateBelgianDaisyLayout())
-            Layout.GERMAN_DAISY -> setBoard(generateGermainDaisyLayout())
+            Layout.GERMAN_DAISY -> setBoard(generateGermanDaisyLayout())
         }
     }
 
@@ -88,7 +90,7 @@ class BoardState {
             board: HashMap<Coordinate, Piece>,
             letter: LetterC,
             piece: Piece,
-            range: ClosedRange<NumberC>
+            range: Iterable<NumberC>
         ) {
             for (n: NumberC in NumberC.entries.slice(letter.min.ordinal..letter.max.ordinal)) {
                 if (n in range) {
@@ -113,7 +115,7 @@ class BoardState {
             TODO("implement the layout generation function for the Belgian Daisy.")
         }
 
-        private fun generateGermainDaisyLayout(): Map<Coordinate, Piece> {
+        private fun generateGermanDaisyLayout(): Map<Coordinate, Piece> {
             TODO("implement the layout generation function for the German Daisy.")
         }
     }
@@ -129,8 +131,37 @@ class BoardState {
     }
 
     override fun toString(): String {
-        // TODO implement the toString method for displaying the BoardState.
-        return super.toString()
+        val letterRowToString = {letter: LetterC ->
+            (letter.min .. letter.max).joinToString(
+                separator = ",",
+                prefix = "[",
+                postfix = "]",
+                transform = {
+                    val piece = cells[Coordinate(letter, it)]!!
+                    when (piece) {
+                        Piece.Empty -> "0"
+                        Piece.Blue -> "2"
+                        Piece.Red -> "1"
+                        Piece.OffBoard -> " "
+                    }
+                }
+            )
+        }
+
+        val returnString = """
+                I ${letterRowToString(LetterC.I)} 
+               H ${letterRowToString(LetterC.H)} 
+              G ${letterRowToString(LetterC.G)} 
+             F ${letterRowToString(LetterC.F)} 
+            E ${letterRowToString(LetterC.E)} 
+             D ${letterRowToString(LetterC.D)}9
+              C ${letterRowToString(LetterC.C)}8
+               B ${letterRowToString(LetterC.B)}7
+                A ${letterRowToString(LetterC.A)}6
+                    1 2 3 4 5
+        """.trimIndent()
+
+        return returnString
     }
 }
 
