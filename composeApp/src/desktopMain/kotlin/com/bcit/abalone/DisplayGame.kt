@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
@@ -63,6 +66,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val blueTimePerTurn = viewModel.p1TimeLimit
     val redTimePerTurn = viewModel.p2TimeLimit
     val moveLimit = viewModel.moveLimit
+    val durationPerMove = viewModel.moveDuration.value
 
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -79,8 +83,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$bluePiecesTaken", fontSize = 90.sp)
+                Text("$bluePiecesTaken", fontSize = 90.sp, color = Color.Blue)
             }
+            Spacer(modifier = Modifier.height(100.dp))
             Row{
                 Box(modifier = Modifier
                     .background(Color.White)
@@ -135,6 +140,14 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(100.dp))
+            Text("P2 Score")
+            Box(
+
+            ) {
+                Text("$redPiecesTaken", fontSize = 90.sp, color = Color.Red)
+            }
+
         }
 
         // Center panel with game board and buttons
@@ -147,27 +160,26 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             // Draw game board
-            Column {
-//                Text("Time Remaining: 30:00:00",
-//                    modifier = Modifier.padding(20.dp),
-//                    fontSize = 25.sp)
+            Column (horizontalAlignment = Alignment.CenterHorizontally) {
                 if (currentPlayer == Piece.Blue) {
-                    Text("P1")
+                    Text("P1", fontSize = 50.sp, fontWeight = FontWeight.Bold)
                     playerTimer(blueTimePerTurn)
                 } else {
-                    Text("P2")
+                    Text("P2", fontSize = 50.sp, fontWeight = FontWeight.Bold)
                     playerTimer(redTimePerTurn)
                 }
+                Spacer(modifier = Modifier.height(40.dp))
+                // Below is the board
                 board.forEachIndexed { _, row ->
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(start = (9 - row.size) * 18.dp)
+                        modifier = Modifier.padding(start = (9 - row.size) * 4.dp)
                     ) {
                         row.forEach { cell ->
                             val isSelected = selectedCells.contains(cell)
                             Box(
                                 modifier = Modifier
-                                    .size(35.dp)
+                                    .size(45.dp)
                                     .clickable {
                                         if (cell.piece != currentPlayer ){
                                             viewModel.moveMarbles(selectedCells, cell)
@@ -195,8 +207,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             }
 
             // buttons
-            Spacer(modifier = Modifier.height(10.dp))
-            Row {
+            Spacer(modifier = Modifier.height(20.dp))
+            Row (modifier = Modifier.padding(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)){
 
                 Button(onClick = { viewModel.resetGame() }, modifier = Modifier.padding(1.dp)) {
                     Text("Start / Reset")
@@ -212,85 +225,47 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
 
         // Right panel for moves table.
         Column(
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .weight(1.5f)
                 .background(Color.LightGray)
                 .fillMaxHeight()
         ) {
-            Text("P2 Score")
-            Box(
+            Text("Previous Moves", modifier = Modifier.padding(15.dp).weight(0.5f).padding(top = 20.dp), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Box(modifier = Modifier
+                .padding(5.dp)
+                .background(Color.White)
 
-            ) {
-                Text("$redPiecesTaken", fontSize = 90.sp)
-            }
-            Box(
-                modifier = Modifier
-                    .border(BorderStroke(0.25.dp, Color.Black))
-                    .background(Color.White)
-                    .width(340.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Previous Moves", modifier = Modifier.padding(1.5.dp, 0.dp))
-            }
-            Row{
-                Box(modifier = Modifier
-                    .background(Color.White)
-                    .width(60.dp)
+                .fillMaxWidth()
+                .weight(3f)
                 ) {
                     Column{
-                        TableCell("Player")
-                        TableCell("")
-                        TableCell("")
-                        TableCell("")
-                        TableCell("Agent")
-                        TableCell("Agent")
+                        Box {
+                            LazyColumn {
+                                items(viewModel.moveHistory.size) {
+                                    pathCard(viewModel.moveHistory[it])
+                                }
+                            }
+                        }
                     }
                 }
-                Box(modifier = Modifier
-                    .background(Color.White)
-                    .width(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column{
-                        TableCell("Path")
-                        TableCell("")
-                        TableCell("")
-                        TableCell("")
-                        TableCell("[F2]->[F3]")
-                        TableCell("[A1, A2]->[B1, B2]")
-                    }
-                }
-                Box(modifier = Modifier
-                    .background(Color.White)
-                    .width(80.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column{
-                        TableCell("Duration")
-                        TableCell("")
-                        TableCell("")
-                        TableCell("")
-                        TableCell("0.737s")
-                        TableCell("0.532s")
-                    }
-                }
-            }
-            Row(modifier = Modifier.width(340.dp)){
-                Box(
-                    modifier = Modifier
-                        .border(BorderStroke(0.25.dp, Color.Black))
-                        .background(Color.White)
-                        .width(260.dp),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    Text("Total", modifier = Modifier.padding(1.5.dp, 0.dp))
-                }
-                TableCell("29m 34.99s")
+
+
+            Column(modifier = Modifier.fillMaxWidth().weight(0.5f)
+            ){
+                val p1Time = viewModel.moveHistory
+                    .filter { it.previousPlayer == Piece.Blue }
+                    .sumOf { it.moveDuration }
+
+                val p2Time = viewModel.moveHistory
+                    .filter { it.previousPlayer == Piece.Red }
+                    .sumOf { it.moveDuration }
+                Text("P1 Total time spent   ${p1Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("P2 Total time spent   ${p2Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
+
 }
 
 /**
@@ -340,4 +315,20 @@ private fun formatTime(milliseconds: Long): String {
     val centiseconds = (milliseconds / 10) % 100
 
     return String.format("%02d:%02d:%02d", minutes, seconds, centiseconds)
+}
+
+@Composable
+fun pathCard(moveRecord: AbaloneViewModel.MoveRecord) {
+    Card(
+        border = BorderStroke(width = 1.dp, color = if( moveRecord.previousPlayer == Piece.Red ) Color.Red else Color.Blue),
+        modifier = Modifier.fillMaxWidth().padding(all=10.dp)
+    ){
+        Row(horizontalArrangement = Arrangement.SpaceEvenly){
+            Text(
+                text = if (moveRecord.previousPlayer == Piece.Red)"Red" else "Blue"
+            )
+            Text(text = moveRecord.movePath)
+            Text(text = "${moveRecord.moveDuration / 1000}s")
+        }
+    }
 }
