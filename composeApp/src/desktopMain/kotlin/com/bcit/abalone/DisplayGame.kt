@@ -25,6 +25,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 
@@ -54,9 +58,12 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val redPiecesTaken = viewModel.redPiecesTaken.value
     val blueTimeRemaining = viewModel.blueTimeRemaining.value
     val redTimeRemaining = viewModel.redTimeRemaining.value
+    val isPaused = viewModel.isPaused.value
+
     val blueTimePerTurn = viewModel.p1TimeLimit
     val redTimePerTurn = viewModel.p2TimeLimit
     val moveLimit = viewModel.moveLimit
+
 
     Row(modifier = Modifier.fillMaxSize()) {
         // Left panel for table including marbles out, moves, and time.
@@ -191,14 +198,14 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Spacer(modifier = Modifier.height(10.dp))
             Row {
 
-                Button(onClick = { viewModel.boardState.value=createBoard() }, modifier = Modifier.padding(1.dp)) {
+                Button(onClick = { viewModel.resetGame() }, modifier = Modifier.padding(1.dp)) {
                     Text("Start / Reset")
                 }
-                Button(onClick = { /* Reset logic here */ }, modifier = Modifier.padding(1.dp)) {
-                    Text("Stop / Pause")
+                Button(onClick = { viewModel.pauseOrResumeGame() }, modifier = Modifier.padding(1.dp)) {
+                    Text( if(isPaused) "Resume" else "Stop / Pause")
                 }
-                Button(onClick = { /* Reset logic here */ }, modifier = Modifier.padding(1.dp)) {
-                    Text("Last move")
+                Button(onClick = {viewModel.undoLastMove() }, modifier = Modifier.padding(1.dp)) {
+                    Text("Undo")
                 }
             }
         }
