@@ -2,8 +2,6 @@ package com.bcit.abalone
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 
 class AbaloneViewModel : ViewModel() {
@@ -30,7 +28,8 @@ class AbaloneViewModel : ViewModel() {
     var moveLimit by mutableStateOf(50f)
 
 
-    val moveHistory = mutableListOf<MoveRecord>()
+
+    val moveHistory = mutableStateListOf<MoveRecord>()
 
     fun resetGame() {
         boardState.value = createBoard()
@@ -65,10 +64,12 @@ class AbaloneViewModel : ViewModel() {
         val bluePiecesTaken: Int,
         val redPiecesTaken: Int,
         val blueTimeRemaining: Long,
-        val redTimeRemaining: Long
+        val redTimeRemaining: Long,
+        val movePath: String,
+        val moveDuration: Long
     )
 
-    fun saveGameState() {
+    fun saveGameState(movePath: String, moveDuration: Long) {
         moveHistory.add(
             MoveRecord(
                 boardState.value.map { row -> row.map { it.copy() } },
@@ -78,9 +79,20 @@ class AbaloneViewModel : ViewModel() {
                 bluePiecesTaken.value,
                 redPiecesTaken.value,
                 blueTimeRemaining.value,
-                redTimeRemaining.value
+                redTimeRemaining.value,
+                movePath,
+                moveDuration
             )
         )
+    }
+
+    private fun toStringMovePath(movedCells: List<Pair<Cell, Cell>>): String {
+        if (movedCells.isEmpty()) return ""
+
+        val startPositions = movedCells.map { "${it.first.letter}${it.first.number}${it.first.piece.name[0]}" }
+        val endPositions = movedCells.map { "${it.second.letter}${it.second.number}${it.second.piece.name[0]}" }
+
+        return "[${startPositions.joinToString(", ")}] -> [${endPositions.joinToString(", ")}]"
     }
 
     fun undoLastMove() {
@@ -143,8 +155,6 @@ class AbaloneViewModel : ViewModel() {
             return
         }
 
-        saveGameState()
-
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
         if (currentPlayer.value == Piece.Blue) {
             blueTimeRemaining.value -= moveDuration.value
@@ -152,12 +162,18 @@ class AbaloneViewModel : ViewModel() {
             redTimeRemaining.value -= moveDuration.value
         }
 
+
         val (letterDiff, numberDiff, moveOrder) = determineMoveDirection(selectedCells, targetCell) ?: return
 
         if (targetCell.piece == Piece.Empty) {
             if (selectedCells.size == 1 && isCellNeighbor(selectedCells[0], targetCell)) {
-                targetCell.piece = selectedCells[0].piece
+                val movedPiece = selectedCells[0].piece
+                val startPos = "${selectedCells[0].letter}${selectedCells[0].number}${movedPiece.name[0]}"
+                val endPos = "${targetCell.letter}${targetCell.number}${movedPiece.name[0]}"
+                targetCell.piece = movedPiece
                 selectedCells[0].piece = Piece.Empty
+                val movePath = "[$startPos] -> [$endPos]"
+                saveGameState(movePath, moveDuration.value)
                 incrementMoveCount()
                 selectedCells.clear()
                 switchPlayer()
@@ -198,6 +214,8 @@ class AbaloneViewModel : ViewModel() {
         val movingPieces = moveOrder.map { it to it.piece }
         movingPieces.forEach { (cell, _) -> cell.piece = Piece.Empty }
 
+        val startPositions = moveOrder.map { "${it.letter}${it.number}${it.piece.name[0]}" }
+
         val newPositions = mutableListOf<Pair<Cell, Cell>>()
         for ((cell, originalPiece) in movingPieces) {
             val newCell = boardState.value.flatten().find {
@@ -216,6 +234,9 @@ class AbaloneViewModel : ViewModel() {
             newCell.piece = movingPieces.find { it.first == oldCell }?.second ?: Piece.Empty
         }
 
+        val endPositions = newPositions.map { "${it.second.letter}${it.second.number}${it.second.piece.name[0]}" }
+        val movePath = "[${startPositions.joinToString(", ")}] -> [${endPositions.joinToString(", ")}]"
+        saveGameState(movePath, moveDuration.value)
         incrementMoveCount()
         switchPlayer()
     }
