@@ -14,7 +14,7 @@ class StateSpaceGeneratorTest {
                     Pair(Piece.Blue, Player(0, 60000))
                 ),
                 50,
-                Piece.Blue
+                Piece.Red
             )
         )
     }
@@ -22,10 +22,13 @@ class StateSpaceGeneratorTest {
     @Test
     fun testActions() {
         val state = sampleData[0]
-        for ((coordinate, piece) in sampleData[0].board.cells) {
-//            println("$coordinate $piece")
-        }
+        println("-----------BOARD-----------")
         println(state.board)
-        TODO("Write tests for action generator")
+        println("----------ACTIONS----------")
+        val actions = StateSpaceGenerator.actions(state)
+        actions.forEach {
+            println(it)
+        }
+
     }
 }

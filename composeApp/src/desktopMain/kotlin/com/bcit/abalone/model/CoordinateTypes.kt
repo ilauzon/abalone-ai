@@ -13,18 +13,6 @@ class Coordinate(
         val offBoard = Coordinate(LetterCoordinate.NULL, NumberCoordinate.NULL)
     }
 
-    fun move(direction: MoveDirection): Coordinate {
-        val newCoordinate = when(direction) {
-            MoveDirection.PosX -> moveX(1)
-            MoveDirection.NegX -> moveX(-1)
-            MoveDirection.PosY -> moveY(1)
-            MoveDirection.NegY -> moveY(-1)
-            MoveDirection.PosZ -> moveZ(1)
-            MoveDirection.NegZ -> moveZ(-1)
-        }
-        return newCoordinate
-    }
-
     /**
      * Provides the adjacent coordinates, i.e. the immediate neighbours of the coordinate.
      *
@@ -41,6 +29,18 @@ class Coordinate(
         )
         val onBoard = adjacent.filter { it.first != offBoard }
         return onBoard.toTypedArray()
+    }
+
+    fun move(direction: MoveDirection): Coordinate {
+        val newCoordinate = when(direction) {
+            MoveDirection.PosX -> moveX(1)
+            MoveDirection.NegX -> moveX(-1)
+            MoveDirection.PosY -> moveY(1)
+            MoveDirection.NegY -> moveY(-1)
+            MoveDirection.PosZ -> moveZ(1)
+            MoveDirection.NegZ -> moveZ(-1)
+        }
+        return newCoordinate
     }
 
     private fun moveX(amount: Int): Coordinate {
@@ -96,20 +96,25 @@ class Coordinate(
     }
 }
 
-enum class NumberCoordinate(
-    val min: LetterCoordinate,
-    val max: LetterCoordinate
-) {
-    NULL(LetterCoordinate.NULL,LetterCoordinate.NULL),
-    ONE(LetterCoordinate.A,LetterCoordinate.E),
-    TWO(LetterCoordinate.A,LetterCoordinate.F),
-    THREE(LetterCoordinate.A,LetterCoordinate.G),
-    FOUR(LetterCoordinate.A,LetterCoordinate.H),
-    FIVE(LetterCoordinate.A,LetterCoordinate.I),
-    SIX(LetterCoordinate.B,LetterCoordinate.I),
-    SEVEN(LetterCoordinate.C,LetterCoordinate.I),
-    EIGHT(LetterCoordinate.D,LetterCoordinate.I),
-    NINE(LetterCoordinate.E,LetterCoordinate.I);
+enum class NumberCoordinate {
+    NULL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE;
+
+    val min: LetterCoordinate get() = minMaxMapping[this]!!.first
+    val max: LetterCoordinate get() = minMaxMapping[this]!!.second
+    companion object {
+        private val minMaxMapping = mapOf(
+            NULL to Pair(LetterCoordinate.NULL, LetterCoordinate.NULL),
+            ONE to Pair(LetterCoordinate.A, LetterCoordinate.E),
+            TWO to Pair(LetterCoordinate.A,LetterCoordinate.F),
+            THREE to Pair(LetterCoordinate.A,LetterCoordinate.G),
+            FOUR to Pair(LetterCoordinate.A,LetterCoordinate.H),
+            FIVE to Pair(LetterCoordinate.A,LetterCoordinate.I),
+            SIX to Pair(LetterCoordinate.B,LetterCoordinate.I),
+            SEVEN to Pair(LetterCoordinate.C,LetterCoordinate.I),
+            EIGHT to Pair(LetterCoordinate.D,LetterCoordinate.I),
+            NINE to Pair(LetterCoordinate.E, LetterCoordinate.I),
+        )
+    }
 
     operator fun plus(amount: Int): NumberCoordinate {
         val sum = ordinal + amount
@@ -134,20 +139,25 @@ enum class NumberCoordinate(
     override fun toString(): String = ordinal.toString()
 }
 
-enum class LetterCoordinate(
-    val min: NumberCoordinate,
-    val max: NumberCoordinate
-) {
-    NULL(NumberCoordinate.NULL, NumberCoordinate.NULL),
-    A(NumberCoordinate.ONE, NumberCoordinate.FIVE),
-    B(NumberCoordinate.ONE, NumberCoordinate.SIX),
-    C(NumberCoordinate.ONE, NumberCoordinate.SEVEN),
-    D(NumberCoordinate.ONE, NumberCoordinate.EIGHT),
-    E(NumberCoordinate.ONE, NumberCoordinate.NINE),
-    F(NumberCoordinate.TWO, NumberCoordinate.NINE),
-    G(NumberCoordinate.THREE, NumberCoordinate.NINE),
-    H(NumberCoordinate.FOUR, NumberCoordinate.NINE),
-    I(NumberCoordinate.FIVE, NumberCoordinate.NINE);
+enum class LetterCoordinate {
+    NULL, A, B, C, D, E, F, G, H, I;
+
+    val min: NumberCoordinate get() = minMaxMapping[this]!!.first
+    val max: NumberCoordinate get() = minMaxMapping[this]!!.second
+    companion object {
+        private val minMaxMapping = mapOf(
+            NULL to Pair(NumberCoordinate.NULL, NumberCoordinate.NULL),
+            A to Pair(NumberCoordinate.ONE, NumberCoordinate.FIVE),
+            B to Pair(NumberCoordinate.ONE, NumberCoordinate.SIX),
+            C to Pair(NumberCoordinate.ONE, NumberCoordinate.SEVEN),
+            D to Pair(NumberCoordinate.ONE, NumberCoordinate.EIGHT),
+            E to Pair(NumberCoordinate.ONE, NumberCoordinate.NINE),
+            F to Pair(NumberCoordinate.TWO, NumberCoordinate.NINE),
+            G to Pair(NumberCoordinate.THREE, NumberCoordinate.NINE),
+            H to Pair(NumberCoordinate.FOUR, NumberCoordinate.NINE),
+            I to Pair(NumberCoordinate.FIVE, NumberCoordinate.NINE),
+        )
+    }
 
     operator fun plus(amount: Int): LetterCoordinate {
         val sum = ordinal + amount
