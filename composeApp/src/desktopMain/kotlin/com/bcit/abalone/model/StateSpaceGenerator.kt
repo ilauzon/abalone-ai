@@ -45,7 +45,7 @@ class StateSpaceGenerator {
            for (coord in playerCoordinates) {
                for ((adjCoord, direction) in coord.adjacentCoordinates()) {
                    if (board[adjCoord] == Piece.Empty) { // if that cell is empty
-                       unaryActions.add(Action(setOf(adjCoord), direction))
+                       unaryActions.add(Action(setOf(coord), direction))
                    }
                }
            }
