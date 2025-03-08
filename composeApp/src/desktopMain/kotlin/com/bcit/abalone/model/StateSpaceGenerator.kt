@@ -7,12 +7,14 @@ package com.bcit.abalone.model
 import com.bcit.abalone.Piece
 
 class StateSpaceGenerator {
+
    companion object {
+
        /**
         * The __Actions__ available to the agent from a given state.
         *
         * Defined formally in the text as
-        * `Actions(s)` returning a finite set of actions that can be executed in `s`.
+        * `Actions(s)` returning a finite set of actions that can be executed in state `s`.
         *
         * Implementation:
         *  1. put all current-player nodes that have at least one empty/opponent space as an immediate
@@ -120,8 +122,8 @@ class StateSpaceGenerator {
            val sumitoTernaryActions = mutableSetOf<Action>()
            for (coord in playerCoordinates) {
                for ((adjCoord, direction) in coord.adjacentCoordinates()) {
-                   var coordBehind = coord.move(direction.opposite())
-                   var coordAhead = adjCoord.move(direction)
+                   val coordBehind = coord.move(direction.opposite())
+                   val coordAhead = adjCoord.move(direction)
                    // moving into the coordinate is a valid binary sumito if:
                    if (
                        // the adjacent piece is an opponent piece
@@ -170,7 +172,46 @@ class StateSpaceGenerator {
         */
        fun result(state: StateRepresentation, action: Action): StateRepresentation {
            // TODO define the result() function.
-           throw NotImplementedError()
+
+           // clone the board
+           val oldBoard = state.board.cells
+           val newBoard = HashMap(state.board.cells)
+           var scoreAdded = 0
+
+           for (coordinate in action.coordinates) {
+               // check if the score should be changed
+               val fromCell = newBoard[coordinate]
+               val toCell = newBoard[coordinate.move(action.direction)]
+               if (fromCell == state.currentPlayer.opposite() && toCell == Piece.OffBoard) {
+                   scoreAdded++
+               }
+
+               // make the move after checking if the score should be changed
+               newBoard[coordinate] = Piece.Empty
+               newBoard[coordinate.move(action.direction)] = oldBoard[coordinate]
+           }
+
+           if (scoreAdded > 1) {
+               throw IllegalArgumentException("The given action and state result in more than one" +
+                       "opposition piece being pushed off the board, which is an invalid move.")
+           }
+
+           // set up the new state
+
+           val oldCurrentPlayer = state.players[state.currentPlayer]!!
+           val newCurrentPlayer = oldCurrentPlayer.copy(score = oldCurrentPlayer.score + scoreAdded)
+           val newPlayers = hashMapOf(
+               Pair(state.currentPlayer, newCurrentPlayer),
+               Pair(state.currentPlayer.opposite(), state.players[state.currentPlayer.opposite()]!!.copy())
+           )
+           val newState = StateRepresentation(
+               BoardState(newBoard),
+               newPlayers,
+               state.movesRemaining - 1,
+               if (state.currentPlayer == Piece.Red) Piece.Blue else Piece.Red
+           )
+
+           return newState
        }
 
        /**
@@ -180,8 +221,7 @@ class StateSpaceGenerator {
         * @return true if the state is a goal state, false otherwise.
         */
        fun goal(state: StateRepresentation): Boolean {
-          // TODO define the goal test function.
-           throw NotImplementedError()
+           TODO("define the goal test function")
        }
    }
 }

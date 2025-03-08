@@ -1,9 +1,6 @@
 package com.bcit.abalone.model
 
 import com.bcit.abalone.Piece
-import com.bcit.abalone.model.LetterCoordinate
-import com.bcit.abalone.model.NumberCoordinate
-import kotlin.ranges.ClosedRange
 import com.bcit.abalone.model.LetterCoordinate as LetterC
 import com.bcit.abalone.model.NumberCoordinate as NumberC
 
@@ -28,16 +25,28 @@ class StateRepresentation(
                 "Piece.Empty is an invalid key for players; players can only be Black or White."
             )
         }
+
+        if (movesRemaining % 2 != 0 && currentPlayer == Piece.Red) {
+            throw IllegalArgumentException(
+                "movesRemaining must be even on Black's turn, otherwise Black will have one more move than White."
+            )
+        } else if (movesRemaining % 2 == 0 && currentPlayer == Piece.Blue) {
+            throw IllegalArgumentException(
+                "movesRemaining must be odd on White's turn, otherwise Black will have one more move than White."
+            )
+        }
     }
 
-    /**
-     * Move the pieces in the specified coordinates in a direction.
-     *
-     * @param cells the coordinates of the pieces to move.
-     * @param direction the direction to move the pieces in.
-     */
-    fun move(cells: Array<Coordinate>, direction: MoveDirection) {
+    val blackMovesRemaining: Int get() = movesRemaining / 2 + if (currentPlayer == Piece.Red) 1 else 0
 
+    override fun toString(): String {
+        val bl = players[Piece.Red]!!
+        val wh = players[Piece.Blue]!!
+        return """
+        Black [${bl.score},${blackMovesRemaining},${bl.moveTime}] 
+        White [${wh.score},${movesRemaining - blackMovesRemaining},${wh.moveTime}] 
+        
+        """.trimIndent() + board
     }
 }
 
@@ -118,10 +127,6 @@ class BoardState {
         private fun generateGermanDaisyLayout(): Map<Coordinate, Piece> {
             TODO("implement the layout generation function for the German Daisy.")
         }
-    }
-
-    internal fun move() {
-        TODO("implement the move function in BoardState")
     }
 
     private fun setBoard(board: Map<Coordinate, Piece>) {
