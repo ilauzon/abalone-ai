@@ -253,8 +253,15 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
 
             Column(modifier = Modifier.fillMaxWidth().weight(0.5f)
             ){
-                Text("P1 Total time spent", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("P2 Total time spent", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                val p1Time = viewModel.moveHistory
+                    .filter { it.previousPlayer == Piece.Blue }
+                    .sumOf { it.moveDuration }
+
+                val p2Time = viewModel.moveHistory
+                    .filter { it.previousPlayer == Piece.Red }
+                    .sumOf { it.moveDuration }
+                Text("P1 Total time spent   ${p1Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("P2 Total time spent   ${p2Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
