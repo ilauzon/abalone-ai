@@ -1,8 +1,6 @@
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.*
 import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
 import kotlin.time.TimeSource
 
 class StateSpaceGeneratorTest {
@@ -11,11 +9,11 @@ class StateSpaceGeneratorTest {
             StateRepresentation(
                 BoardState(BoardState.Layout.STANDARD),
                 mapOf(
-                    Pair(Piece.Red, Player(0, 60000)),
-                    Pair(Piece.Blue, Player(0, 60000))
+                    Piece.Blue to Player(0, 60000),
+                    Piece.Red to Player(0, 60000),
                 ),
                 50,
-                Piece.Red
+                Piece.Blue
             )
         )
     }
@@ -23,17 +21,24 @@ class StateSpaceGeneratorTest {
     @Test
     fun testActions() {
         val timeSource = TimeSource.Monotonic
-        val state = sampleData[0]
+        val initialState = sampleData[0]
         println("-------------------INITIAL STATE----------------------")
-        println(state)
+        println(initialState)
         println("----------ACTIONS AND THEIR RESULTING STATES----------")
         val mark1 = timeSource.markNow()
-        val actions = StateSpaceGenerator.actions(state)
+        val actions = StateSpaceGenerator.actions(initialState)
+        val actionStates = mutableListOf<Pair<Action, StateRepresentation>>()
         actions.forEach {
-            println("Action: $it")
-            println("State:\n${StateSpaceGenerator.result(state, it)}")
+            val state = StateSpaceGenerator.result(initialState, it)
+            actionStates.add(it to state)
         }
         val mark2 = timeSource.markNow()
         println("Time taken to generate: ${mark2 - mark1}")
+        println("# states generated: ${actionStates.size}")
+        println("------------------------------------------------------")
+        for ((action, state) in actionStates) {
+            println("Action: $action")
+            println("State:\n${state}")
+        }
     }
 }

@@ -201,8 +201,8 @@ class StateSpaceGenerator {
            val oldCurrentPlayer = state.players[state.currentPlayer]!!
            val newCurrentPlayer = oldCurrentPlayer.copy(score = oldCurrentPlayer.score + scoreAdded)
            val newPlayers = hashMapOf(
-               Pair(state.currentPlayer, newCurrentPlayer),
-               Pair(state.currentPlayer.opposite(), state.players[state.currentPlayer.opposite()]!!.copy())
+               state.currentPlayer to newCurrentPlayer,
+               state.currentPlayer.opposite() to state.players[state.currentPlayer.opposite()]!!.copy(),
            )
            val newState = StateRepresentation(
                BoardState(newBoard),

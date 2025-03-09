@@ -20,12 +20,12 @@ class Coordinate(
      */
     fun adjacentCoordinates(): Array<Pair<Coordinate, MoveDirection>> {
         val adjacent = listOf(
-            Pair(move(MoveDirection.PosX), MoveDirection.PosX),
-            Pair(move(MoveDirection.NegX), MoveDirection.NegX),
-            Pair(move(MoveDirection.PosY), MoveDirection.PosY),
-            Pair(move(MoveDirection.NegY), MoveDirection.NegY),
-            Pair(move(MoveDirection.PosZ), MoveDirection.PosZ),
-            Pair(move(MoveDirection.NegZ), MoveDirection.NegZ),
+            move(MoveDirection.PosX) to MoveDirection.PosX,
+            move(MoveDirection.NegX) to MoveDirection.NegX,
+            move(MoveDirection.PosY) to MoveDirection.PosY,
+            move(MoveDirection.NegY) to MoveDirection.NegY,
+            move(MoveDirection.PosZ) to MoveDirection.PosZ,
+            move(MoveDirection.NegZ) to MoveDirection.NegZ,
         )
         val onBoard = adjacent.filter { it.first != offBoard }
         return onBoard.toTypedArray()
