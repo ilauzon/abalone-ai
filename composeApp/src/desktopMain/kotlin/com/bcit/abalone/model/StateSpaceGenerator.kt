@@ -208,7 +208,7 @@ class StateSpaceGenerator {
                BoardState(newBoard),
                newPlayers,
                state.movesRemaining - 1,
-               if (state.currentPlayer == Piece.Red) Piece.Blue else Piece.Red
+               if (state.currentPlayer == Piece.White) Piece.Black else Piece.White
            )
 
            return newState

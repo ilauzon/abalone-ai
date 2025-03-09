@@ -27,8 +27,6 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 
@@ -109,7 +105,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         TableCell("$bluePiecesTaken")
                         TableCell("$blueMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(blueTimeRemaining))
-                        if (currentPlayer == Piece.Blue) {
+                        if (currentPlayer == Piece.Black) {
                             Box(
                                 modifier = Modifier.background(Color.Blue).fillMaxWidth()
                                     .height(25.dp)
@@ -129,7 +125,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         TableCell("$redPiecesTaken")
                         TableCell("$redMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(redTimeRemaining))
-                        if (currentPlayer == Piece.Red) {
+                        if (currentPlayer == Piece.White) {
                             Box(
                                 modifier = Modifier.background(Color.Red).fillMaxWidth()
                                     .height(25.dp)
@@ -161,7 +157,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
             // Draw game board
             Column (horizontalAlignment = Alignment.CenterHorizontally) {
-                if (currentPlayer == Piece.Blue) {
+                if (currentPlayer == Piece.Black) {
                     Text("P1", fontSize = 50.sp, fontWeight = FontWeight.Bold)
                     playerTimer(blueTimePerTurn)
                 } else {
@@ -190,8 +186,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                                     }
                                     .background(
                                         when (cell.piece) {
-                                            Piece.Blue -> Color.Blue
-                                            Piece.Red -> Color.Red
+                                            Piece.Black -> Color.Blue
+                                            Piece.White -> Color.Red
                                             else -> Color.White
                                         },
                                         shape = CircleShape
@@ -254,11 +250,11 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Column(modifier = Modifier.fillMaxWidth().weight(0.5f)
             ){
                 val p1Time = viewModel.moveHistory
-                    .filter { it.previousPlayer == Piece.Blue }
+                    .filter { it.previousPlayer == Piece.Black }
                     .sumOf { it.moveDuration }
 
                 val p2Time = viewModel.moveHistory
-                    .filter { it.previousPlayer == Piece.Red }
+                    .filter { it.previousPlayer == Piece.White }
                     .sumOf { it.moveDuration }
                 Text("P1 Total time spent   ${p1Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("P2 Total time spent   ${p2Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -320,12 +316,12 @@ private fun formatTime(milliseconds: Long): String {
 @Composable
 fun pathCard(moveRecord: AbaloneViewModel.MoveRecord) {
     Card(
-        border = BorderStroke(width = 1.dp, color = if( moveRecord.previousPlayer == Piece.Red ) Color.Red else Color.Blue),
+        border = BorderStroke(width = 1.dp, color = if( moveRecord.previousPlayer == Piece.White ) Color.Red else Color.Blue),
         modifier = Modifier.fillMaxWidth().padding(all=10.dp)
     ){
         Row(horizontalArrangement = Arrangement.SpaceEvenly){
             Text(
-                text = if (moveRecord.previousPlayer == Piece.Red)"Red" else "Blue"
+                text = if (moveRecord.previousPlayer == Piece.White)"Red" else "Blue"
             )
             Text(text = moveRecord.movePath)
             Text(text = "${moveRecord.moveDuration / 1000}s")

@@ -9,11 +9,11 @@ class StateSpaceGeneratorTest {
             StateRepresentation(
                 BoardState(BoardState.Layout.STANDARD),
                 mapOf(
-                    Piece.Blue to Player(0, 60000),
-                    Piece.Red to Player(0, 60000),
+                    Piece.Black to Player(0, 60000),
+                    Piece.White to Player(0, 60000),
                 ),
                 50,
-                Piece.Blue
+                Piece.Black
             )
         )
     }

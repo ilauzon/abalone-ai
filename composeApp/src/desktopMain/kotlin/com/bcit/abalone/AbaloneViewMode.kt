@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 
 class AbaloneViewModel : ViewModel() {
     var boardState = mutableStateOf(createBoard())
-    var currentPlayer = mutableStateOf(Piece.Blue)
+    var currentPlayer = mutableStateOf(Piece.Black)
     var blueMoveNumber = mutableStateOf(0)
     var redMoveNumber = mutableStateOf(0)
     var bluePiecesTaken = mutableStateOf(0)
@@ -33,7 +33,7 @@ class AbaloneViewModel : ViewModel() {
 
     fun resetGame() {
         boardState.value = createBoard()
-        currentPlayer.value = Piece.Blue
+        currentPlayer.value = Piece.Black
         blueMoveNumber.value = 0
         redMoveNumber.value = 0
         bluePiecesTaken.value = 0
@@ -156,7 +156,7 @@ class AbaloneViewModel : ViewModel() {
         }
 
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
-        if (currentPlayer.value == Piece.Blue) {
+        if (currentPlayer.value == Piece.Black) {
             blueTimeRemaining.value -= moveDuration.value
         } else {
             redTimeRemaining.value -= moveDuration.value
@@ -281,15 +281,15 @@ class AbaloneViewModel : ViewModel() {
     }
 
     private fun updatePiecesTaken() {
-        if (currentPlayer.value == Piece.Blue) bluePiecesTaken.value++ else redPiecesTaken.value++
+        if (currentPlayer.value == Piece.Black) bluePiecesTaken.value++ else redPiecesTaken.value++
     }
 
     private fun incrementMoveCount() {
-        if (currentPlayer.value == Piece.Blue) blueMoveNumber.value++ else redMoveNumber.value++
+        if (currentPlayer.value == Piece.Black) blueMoveNumber.value++ else redMoveNumber.value++
     }
 
     fun switchPlayer() {
-        currentPlayer.value = if (currentPlayer.value == Piece.Blue) Piece.Red else Piece.Blue
+        currentPlayer.value = if (currentPlayer.value == Piece.Black) Piece.White else Piece.Black
         moveStartTime.value = System.currentTimeMillis()
     }
     fun updateSettings(

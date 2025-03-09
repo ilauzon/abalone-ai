@@ -26,11 +26,11 @@ class StateRepresentation(
             )
         }
 
-        if (movesRemaining % 2 != 0 && currentPlayer == Piece.Blue) {
+        if (movesRemaining % 2 != 0 && currentPlayer == Piece.Black) {
             throw IllegalArgumentException(
                 "movesRemaining must be even on Black's turn, otherwise Black will have one more move than White."
             )
-        } else if (movesRemaining % 2 == 0 && currentPlayer == Piece.Red) {
+        } else if (movesRemaining % 2 == 0 && currentPlayer == Piece.White) {
             throw IllegalArgumentException(
                 "movesRemaining must be odd on White's turn, otherwise Black will have one more move than White."
             )
@@ -39,18 +39,18 @@ class StateRepresentation(
 
     fun movesRemaining(colour: Piece): Int =
         when(colour) {
-            Piece.Blue -> movesRemaining / 2
-            Piece.Red -> movesRemaining / 2 + if (movesRemaining % 2 == 0) 0 else 1
+            Piece.Black -> movesRemaining / 2
+            Piece.White -> movesRemaining / 2 + if (movesRemaining % 2 == 0) 0 else 1
             Piece.Empty -> throw IllegalArgumentException("Piece.Empty does not have moves.")
             Piece.OffBoard -> throw IllegalArgumentException("Piece.OffBoard does not have moves.")
         }
 
     override fun toString(): String {
-        val bl = players[Piece.Blue]!!
-        val wh = players[Piece.Red]!!
+        val bl = players[Piece.Black]!!
+        val wh = players[Piece.White]!!
         return """
-        Black [${bl.score},${movesRemaining(Piece.Blue)},${bl.moveTime}] 
-        White [${wh.score},${movesRemaining(Piece.Red)},${wh.moveTime}] 
+        Black [${bl.score},${movesRemaining(Piece.Black)},${bl.moveTime}] 
+        White [${wh.score},${movesRemaining(Piece.White)},${wh.moveTime}] 
         
         """.trimIndent() + board
     }
@@ -117,12 +117,12 @@ class BoardState {
         private fun generateStandardLayout(): Map<Coordinate, Piece> {
             val board = HashMap<Coordinate, Piece>()
             fillBoardWithEmpty(board)
-            fillBoardLetter(board, LetterC.A, Piece.Blue, LetterC.A.min .. LetterC.A.max)
-            fillBoardLetter(board, LetterC.B, Piece.Blue, LetterC.B.min .. LetterC.B.max)
-            fillBoardLetter(board, LetterC.C, Piece.Blue, LetterC.C.min + 2 .. LetterC.C.max - 2)
-            fillBoardLetter(board, LetterC.G, Piece.Red, LetterC.G.min + 2 .. LetterC.G.max - 2)
-            fillBoardLetter(board, LetterC.H, Piece.Red, LetterC.H.min .. LetterC.H.max)
-            fillBoardLetter(board, LetterC.I, Piece.Red, LetterC.I.min .. LetterC.I.max)
+            fillBoardLetter(board, LetterC.A, Piece.Black, LetterC.A.min .. LetterC.A.max)
+            fillBoardLetter(board, LetterC.B, Piece.Black, LetterC.B.min .. LetterC.B.max)
+            fillBoardLetter(board, LetterC.C, Piece.Black, LetterC.C.min + 2 .. LetterC.C.max - 2)
+            fillBoardLetter(board, LetterC.G, Piece.White, LetterC.G.min + 2 .. LetterC.G.max - 2)
+            fillBoardLetter(board, LetterC.H, Piece.White, LetterC.H.min .. LetterC.H.max)
+            fillBoardLetter(board, LetterC.I, Piece.White, LetterC.I.min .. LetterC.I.max)
             return board
         }
 
@@ -151,8 +151,8 @@ class BoardState {
                     val piece = cells[Coordinate(letter, it)]!!
                     when (piece) {
                         Piece.Empty -> "0"
-                        Piece.Blue -> "1"
-                        Piece.Red -> "2"
+                        Piece.Black -> "1"
+                        Piece.White -> "2"
                         Piece.OffBoard -> " "
                     }
                 }

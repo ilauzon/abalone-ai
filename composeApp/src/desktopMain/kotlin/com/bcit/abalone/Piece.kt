@@ -1,11 +1,11 @@
 package com.bcit.abalone
 
 enum class Piece {
-    Empty, Blue, Red, OffBoard;
+    Empty, Black, White, OffBoard;
     fun opposite() = when(this) {
         Empty -> Empty
-        Blue -> Red
-        Red -> Blue
+        Black -> White
+        White -> Black
         OffBoard -> OffBoard
     }
 }

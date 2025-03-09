@@ -30,10 +30,10 @@ fun createBoard(): List<List<Cell>> {
         }
         for (i in start until (start + columnLength[index])) {
             val piece = when (c) {
-                'I', 'H' -> Piece.Blue
-                'G' -> if (i in 5..7) Piece.Blue else Piece.Empty
-                'A', 'B' -> Piece.Red
-                'C' -> if (i in 3..5) Piece.Red else Piece.Empty
+                'I', 'H' -> Piece.Black
+                'G' -> if (i in 5..7) Piece.Black else Piece.Empty
+                'A', 'B' -> Piece.White
+                'C' -> if (i in 3..5) Piece.White else Piece.Empty
                 else -> Piece.Empty
             }
             val cell = Cell(c, i, piece)
