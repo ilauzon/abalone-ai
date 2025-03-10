@@ -45,6 +45,10 @@ class StateRepresentation(
             Piece.OffBoard -> throw IllegalArgumentException("Piece.OffBoard does not have moves.")
         }
 
+    fun getBoardState(): BoardState {
+        return board
+    }
+
     override fun toString(): String {
         val bl = players[Piece.Black]!!
         val wh = players[Piece.White]!!
