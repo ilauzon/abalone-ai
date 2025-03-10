@@ -237,9 +237,8 @@ class AbaloneViewModel : ViewModel() {
     // This helper method moves the selected pieces to the target cells.
     private fun performMove(moveOrder: List<Cell>, letterDiff: Int, numberDiff: Int) {
         val movingPieces = moveOrder.map { it to it.piece }
-        movingPieces.forEach { (cell, _) -> cell.piece = Piece.Empty }
-
         val startPositions = moveOrder.map { "${it.letter}${it.number}${it.piece.name[0]}" }
+        movingPieces.forEach { (cell, _) -> cell.piece = Piece.Empty }
 
         val newPositions = mutableListOf<Pair<Cell, Cell>>()
         for ((cell, originalPiece) in movingPieces) {
