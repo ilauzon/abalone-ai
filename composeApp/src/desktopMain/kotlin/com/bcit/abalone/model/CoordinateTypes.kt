@@ -114,6 +114,22 @@ enum class NumberCoordinate {
             EIGHT to Pair(LetterCoordinate.D,LetterCoordinate.I),
             NINE to Pair(LetterCoordinate.E, LetterCoordinate.I),
         )
+
+        fun convertNumber(letter: String): NumberCoordinate {
+            val numberCoordinate = when (letter) {
+                "1" -> ONE
+                "2" -> TWO
+                "3" -> THREE
+                "4" -> FOUR
+                "5" -> FIVE
+                "6" -> SIX
+                "7" -> SEVEN
+                "8" -> EIGHT
+                "9" -> NINE
+                else -> NULL
+            }
+            return numberCoordinate
+        }
     }
 
     operator fun plus(amount: Int): NumberCoordinate {
@@ -157,6 +173,21 @@ enum class LetterCoordinate {
             H to Pair(NumberCoordinate.FOUR, NumberCoordinate.NINE),
             I to Pair(NumberCoordinate.FIVE, NumberCoordinate.NINE),
         )
+        fun convertLetter(letter: String): LetterCoordinate {
+            val letterCoordinate = when (letter) {
+                "A" -> A
+                "B" -> B
+                "C" -> C
+                "D" -> D
+                "E" -> E
+                "F" -> F
+                "G" -> G
+                "H" -> H
+                "I" -> I
+                else -> NULL
+            }
+            return letterCoordinate
+        }
     }
 
     operator fun plus(amount: Int): LetterCoordinate {
