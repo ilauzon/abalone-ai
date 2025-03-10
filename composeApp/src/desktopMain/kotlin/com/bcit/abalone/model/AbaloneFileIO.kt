@@ -59,8 +59,8 @@ class AbaloneFileIO private constructor() {
             }
             val marbleLayoutMap: Map<Coordinate, Piece> = marbleLayout.toMap()
             val boardState = BoardState(marbleLayoutMap)
-            val blackPlayer = Player(MAX_PIECES - blackPieceCount, SAMPLE_MOVE_TIME)
-            val whitePlayer = Player(MAX_PIECES - whitePieceCount, SAMPLE_MOVE_TIME)
+            val blackPlayer = Player(MAX_PIECES - whitePieceCount, SAMPLE_MOVE_TIME)
+            val whitePlayer = Player(MAX_PIECES - blackPieceCount, SAMPLE_MOVE_TIME)
             val players = mapOf(Piece.Black to blackPlayer, Piece.White to whitePlayer)
             val currentPlayerPiece = if (currentPlayer == "b") Piece.Black else Piece.White
             val movesRemaining = if (currentPlayer == "b") BLACK_MOVE_REMAINING else WHITE_MOVE_REMAINING

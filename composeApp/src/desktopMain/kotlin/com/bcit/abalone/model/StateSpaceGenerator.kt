@@ -121,33 +121,40 @@ class StateSpaceGenerator {
            val sumitoBinaryActions = mutableSetOf<Action>()
            val sumitoTernaryActions = mutableSetOf<Action>()
            for (coord in playerCoordinates) {
-               for ((adjCoord, direction) in coord.adjacentCoordinates()) {
+               for ((coordAhead, direction) in coord.adjacentCoordinates()) {
                    val coordBehind = coord.move(direction.opposite())
-                   val coordAhead = adjCoord.move(direction)
                    // moving into the coordinate is a valid binary sumito if:
                    if (
                        // the adjacent piece is an opponent piece
-                       board[adjCoord] !in listOf(Piece.OffBoard, Piece.Empty, state.currentPlayer)
+                       board[coordAhead] == state.currentPlayer.opposite()
                        // the current piece has a piece of the current player's colour behind it
                        && board[coordBehind] == state.currentPlayer
                    ) {
-                       if (board[coordAhead] in listOf(Piece.Empty, Piece.OffBoard)) {
+                       val secondCoordAhead = coordAhead.move(direction)
+                       val thirdCoordBehind = coordBehind.move(direction.opposite())
+                       if (board[secondCoordAhead] in listOf(Piece.Empty, Piece.OffBoard)) {
                            sumitoBinaryActions.add(Action(
-                               setOf(coordBehind, coord, adjCoord),
+                               setOf(coordBehind, coord, coordAhead),
                                direction
                            ))
+                           if (board[thirdCoordBehind] == state.currentPlayer) {
+                               sumitoTernaryActions.add(Action(
+                                   setOf(thirdCoordBehind, coordBehind, coord, coordAhead),
+                                   direction
+                               ))
+                           }
                        }
 
                        // ternary sumitos
-                       val thirdCoordBehind = coordBehind.move(direction.opposite())
-                       val thirdCoordAhead = coordAhead.move(direction)
+                       val thirdCoordAhead = secondCoordAhead.move(direction)
                        if (
-                           board[coordAhead] !in listOf(Piece.OffBoard, Piece.Empty, state.currentPlayer)
+                           board[secondCoordAhead] == state.currentPlayer.opposite()
                            && board[thirdCoordBehind] == state.currentPlayer
-                           && board[thirdCoordAhead] in listOf(Piece.Empty, Piece.OffBoard)
+                           && board[thirdCoordAhead] in listOf(Piece.Empty, Piece.OffBoard
+                           )
                        ) {
                            sumitoTernaryActions.add(Action(
-                               setOf(thirdCoordBehind, coordBehind, coord, adjCoord, thirdCoordAhead),
+                               setOf(thirdCoordBehind, coordBehind, coord, coordAhead, thirdCoordAhead),
                                direction
                            ))
                        }
@@ -171,25 +178,32 @@ class StateSpaceGenerator {
         * @return the state that was transitioned to.
         */
        fun result(state: StateRepresentation, action: Action): StateRepresentation {
-           // TODO define the result() function.
 
            // clone the board
            val oldBoard = state.board.cells
-           val newBoard = HashMap(state.board.cells)
+           val newBoard = HashMap(oldBoard)
            var scoreAdded = 0
 
-           for (coordinate in action.coordinates) {
+           val mappedCoordinates: List<Pair<Coordinate, Coordinate>> = action.coordinates.map {
+               it to it.move(action.direction)
+           }
+
+           val oldCoordinates = mappedCoordinates.map { it.first }
+           val newCoordinates = mappedCoordinates.map { it.second }
+
+           for (coordinate in oldCoordinates) {
                // check if the score should be changed
                val fromCell = newBoard[coordinate]
                val toCell = newBoard[coordinate.move(action.direction)]
                if (fromCell == state.currentPlayer.opposite() && toCell == Piece.OffBoard) {
                    scoreAdded++
                }
-
                // make the move after checking if the score should be changed
-               newBoard[coordinate] = Piece.Empty
-               newBoard[coordinate.move(action.direction)] = oldBoard[coordinate]
+               if (coordinate !in newCoordinates) newBoard[coordinate] = Piece.Empty
+               val newCoordinate = coordinate.move(action.direction)
+               newBoard[newCoordinate] = oldBoard[coordinate]
            }
+
 
            if (scoreAdded > 1) {
                throw IllegalArgumentException("The given action and state result in more than one" +

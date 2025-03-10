@@ -49,7 +49,9 @@ class StateSpaceGeneratorTest {
     @Test
     fun test1() {
         // read the file input
-        val text = AbaloneFileIO.readDataFile("examples/Test1.board")
+        val text = AbaloneFileIO.readDataFile("examples/Test1.input")
+        val outputMoveFile = "out/Test1.move"
+        val outputBoardFile = "out/Test1.board"
 
         //parse board from file
         val boardState = AbaloneFileIO.parseState(text[0], text[1])
@@ -72,6 +74,10 @@ class StateSpaceGeneratorTest {
         // turn actions and boards into strings for file output
         val actionsStrings = AbaloneFileIO.stringifyActions(actions)
         val boardStrings = AbaloneFileIO.stringifyBoards(boards)
+
+        // write output to respective files
+        AbaloneFileIO.writeDataFile(outputMoveFile, actionsStrings)
+        AbaloneFileIO.writeDataFile(outputBoardFile, boardStrings)
         TODO("Finish test for Test1.input")
     }
 
