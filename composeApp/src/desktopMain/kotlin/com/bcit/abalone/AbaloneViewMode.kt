@@ -33,6 +33,8 @@ class AbaloneViewModel : ViewModel() {
     var player1Color by mutableStateOf("Black")
     var moveLimit by mutableStateOf(50f)
 
+    var pausedTimeRemaining = 0L
+
 
 
     val moveHistory = mutableStateListOf<MoveRecord>()
@@ -57,12 +59,24 @@ class AbaloneViewModel : ViewModel() {
     }
 
     fun pauseOrResumeGame() {
+        val currentTime = System.currentTimeMillis()
+
         if (isPaused.value) {
             // Resume the game
-            moveStartTime.value = System.currentTimeMillis()
+            moveStartTime.value = currentTime
+            if(currentPlayer.value == Piece.Black) {
+                blueTimeRemaining.value = pausedTimeRemaining
+            } else {
+                redTimeRemaining.value = pausedTimeRemaining
+            }
+
         } else {
             // Pause the game
-            moveStartTime.value = -1L
+            pausedTimeRemaining = if(currentPlayer.value == Piece.Black) {
+                blueTimeRemaining.value - (currentTime - moveStartTime.value)
+            } else {
+                redTimeRemaining.value - (currentTime - moveStartTime.value)
+            }
         }
         isPaused.value = !isPaused.value
     }
