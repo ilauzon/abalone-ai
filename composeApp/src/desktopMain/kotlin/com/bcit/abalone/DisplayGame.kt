@@ -109,7 +109,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column{
-                        TableCell("BLUE")
+                        TableCell("P1")
                         TableCell("$bluePiecesTaken")
                         TableCell("$blueMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(blueTimeRemaining))
@@ -129,7 +129,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column(verticalArrangement = Arrangement.SpaceEvenly){
-                        TableCell("RED")
+                        TableCell("P2")
                         TableCell("$redPiecesTaken")
                         TableCell("$redMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(redTimeRemaining))

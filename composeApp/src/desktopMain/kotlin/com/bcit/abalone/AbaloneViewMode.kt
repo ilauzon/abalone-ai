@@ -34,6 +34,8 @@ class AbaloneViewModel : ViewModel() {
     var moveLimit by mutableStateOf(50f)
 
     var pausedTimeRemaining = 0L
+    var deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
+
 
 
 
@@ -95,9 +97,10 @@ class AbaloneViewModel : ViewModel() {
     )
 
     fun saveGameState(movePath: String, moveDuration: Long) {
+
         moveHistory.add(
             MoveRecord(
-                boardState.value.map { row -> row.map { it.copy() } },
+                previousState = deepCopiedBoard.map { row -> row.map { it.copy() } },
                 currentPlayer.value,
                 blueMoveNumber.value,
                 redMoveNumber.value,
@@ -111,26 +114,21 @@ class AbaloneViewModel : ViewModel() {
         )
     }
 
-    private fun toStringMovePath(movedCells: List<Pair<Cell, Cell>>): String {
-        if (movedCells.isEmpty()) return ""
-
-        val startPositions = movedCells.map { "${it.first.letter}${it.first.number}${it.first.piece.name[0]}" }
-        val endPositions = movedCells.map { "${it.second.letter}${it.second.number}${it.second.piece.name[0]}" }
-
-        return "[${startPositions.joinToString(", ")}] -> [${endPositions.joinToString(", ")}]"
-    }
 
     fun undoLastMove() {
         if (moveHistory.isNotEmpty()) {
             val lastMove = moveHistory.removeLast()
-            boardState.value = lastMove.previousState
+            deepCopiedBoard = lastMove.previousState.map { row -> row.map { it.copy() } }
+            boardState.value = deepCopiedBoard
+
             currentPlayer.value = lastMove.previousPlayer
             blueMoveNumber.value = lastMove.blueMoveNumber
             redMoveNumber.value = lastMove.redMoveNumber
             bluePiecesTaken.value = lastMove.bluePiecesTaken
-            redPiecesTaken.value = lastMove.redPiecesTaken
+            redPiecesTaken.value =lastMove.redPiecesTaken
             blueTimeRemaining.value = lastMove.blueTimeRemaining
             redTimeRemaining.value = lastMove.redTimeRemaining
+
         }
     }
 
@@ -260,9 +258,11 @@ class AbaloneViewModel : ViewModel() {
 
         val endPositions = newPositions.map { "${it.second.letter}${it.second.number}${it.second.piece.name[0]}" }
         val movePath = "[${startPositions.joinToString(", ")}] -> [${endPositions.joinToString(", ")}]"
+
         saveGameState(movePath, moveDuration.value)
         incrementMoveCount()
         switchPlayer()
+
     }
 
     // this method handles pushing opponent piece.
@@ -313,6 +313,7 @@ class AbaloneViewModel : ViewModel() {
     }
 
     fun switchPlayer() {
+        deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
         currentPlayer.value = if (currentPlayer.value == Piece.Black) Piece.White else Piece.Black
         moveStartTime.value = System.currentTimeMillis()
     }
