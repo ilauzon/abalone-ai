@@ -131,13 +131,18 @@ class StateSpaceGenerator {
                        && board[coordBehind] == state.currentPlayer
                    ) {
                        val secondCoordAhead = coordAhead.move(direction)
+                       val secondPieceAhead = board[secondCoordAhead]
                        val thirdCoordBehind = coordBehind.move(direction.opposite())
-                       if (board[secondCoordAhead] in listOf(Piece.Empty, Piece.OffBoard)) {
+                       val thirdPieceBehind = board[thirdCoordBehind]
+                       if (
+                           secondPieceAhead == Piece.Empty
+                           || secondPieceAhead == Piece.OffBoard
+                       ) {
                            sumitoBinaryActions.add(Action(
                                setOf(coordBehind, coord, coordAhead),
                                direction
                            ))
-                           if (board[thirdCoordBehind] == state.currentPlayer) {
+                           if (thirdPieceBehind == state.currentPlayer) {
                                sumitoTernaryActions.add(Action(
                                    setOf(thirdCoordBehind, coordBehind, coord, coordAhead),
                                    direction
@@ -146,17 +151,21 @@ class StateSpaceGenerator {
                        }
 
                        // ternary sumitos
-                       val thirdCoordAhead = secondCoordAhead.move(direction)
                        if (
-                           board[secondCoordAhead] == state.currentPlayer.opposite()
-                           && board[thirdCoordBehind] == state.currentPlayer
-                           && board[thirdCoordAhead] in listOf(Piece.Empty, Piece.OffBoard
-                           )
+                           secondPieceAhead == state.currentPlayer.opposite()
+                           && thirdPieceBehind == state.currentPlayer
                        ) {
-                           sumitoTernaryActions.add(Action(
-                               setOf(thirdCoordBehind, coordBehind, coord, coordAhead, thirdCoordAhead),
-                               direction
-                           ))
+                           val thirdCoordAhead = secondCoordAhead.move(direction)
+                           val thirdPieceAhead = board[thirdCoordAhead]
+                           if (
+                               thirdPieceAhead == Piece.Empty
+                               || thirdPieceAhead == Piece.OffBoard
+                           ) {
+                               sumitoTernaryActions.add(Action(
+                                   setOf(thirdCoordBehind, coordBehind, coord, coordAhead, secondCoordAhead),
+                                   direction
+                               ))
+                           }
                        }
                    }
                }
