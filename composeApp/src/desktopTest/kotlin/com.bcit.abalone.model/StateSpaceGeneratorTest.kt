@@ -1,5 +1,6 @@
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.*
+import kotlin.math.sign
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -86,10 +87,11 @@ class StateSpaceGeneratorTest {
         assertEquals(testBoards.size, generatedBoards.size)
 
         var testBoardsLeft = testBoards.size
+        val testBoardsUsed: HashSet<BoardState> = HashSet()
         for (board in generatedBoards) {
             var boardMatch: BoardState? = null
 
-            testBoard@ for (testBoard in testBoards) {
+            for (testBoard in testBoards) {
                 var allEqual = true
                 letter@ for (letter in LetterCoordinate.entries.drop(1)) {
                     for (number in letter.min .. letter.max) {
@@ -103,15 +105,15 @@ class StateSpaceGeneratorTest {
 
                 if (allEqual) {
                     boardMatch = testBoard
-                    testBoardsLeft--
+                    testBoardsUsed.add(testBoard)
                 }
             }
 
             assertNotNull(boardMatch, "A board was generated that is not present" +
                     " in the reference file.\n${board.toStringPretty()}")
         }
-        assertEquals(0, testBoardsLeft)
-        println("All boards equal.")
+        assertEquals(testBoards.size, testBoardsUsed.size, "Not all test boards were generated.")
+        println("All boards are equal.")
     }
 
     /**
