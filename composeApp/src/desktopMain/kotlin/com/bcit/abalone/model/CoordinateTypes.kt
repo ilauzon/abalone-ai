@@ -7,12 +7,34 @@ package com.bcit.abalone.model
 import com.bcit.abalone.Piece
 import java.lang.IllegalArgumentException
 
+/**
+ * Represents an immutable letter-number pair, signifying a position on the Abalone game board.
+ *
+ * Implemented using a private constructor. Instances of this class are accessed via the .get
+ * method, which retrieves an instance from a map generated in a static constructor. This is to
+ * reduce unnecessary instantiation, given that there is a very small and defined number of possible
+ * instances of this class.
+ *
+ * @property letter the letter coordinate.
+ * @property number the number coordinate.
+ */
 class Coordinate private constructor(val letter: LetterCoordinate, val number: NumberCoordinate) {
 
     companion object {
+        /**
+         * The coordinate representing a location not on the board. Has a letter and number of NULL
+         * (the enum value, not the null type).
+         */
         val offBoard = Coordinate(LetterCoordinate.NULL, NumberCoordinate.NULL)
+
+        /**
+         * The map of coordinates that is looked up whenever an instance is retrieved.
+         */
         private val coordinates: HashMap<Int, Coordinate> = HashMap()
 
+        /**
+         * Initializes the coordinates map.
+         */
         init {
             for (l: LetterCoordinate in LetterCoordinate.entries) {
                 for (n: NumberCoordinate in l.min .. l.max) {
@@ -27,6 +49,9 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
          * @param letter the letter coordinate.
          * @param number the number coordinate.
          * @return an existing Coordinate instance.
+         * @throws IllegalArgumentException if a number is passed in that is outside the min and max
+         * number of the letter passed in. If only one of letter or number is NULL, this will also
+         * throw.
          */
         fun get(letter: LetterCoordinate, number: NumberCoordinate): Coordinate {
             if (number < letter.min || number > letter.max) {
@@ -65,6 +90,12 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
         return onBoard.toTypedArray()
     }
 
+    /**
+     * Returns the coordinate that results after the translation by 1 space in the given direction.
+     *
+     * @param direction the direction to move in.
+     * @return the new coordinate. Does not mutate the original coordinate.
+     */
     fun move(direction: MoveDirection): Coordinate {
         val newCoordinate = when(direction) {
             MoveDirection.PosX -> moveX(1)
@@ -129,23 +160,29 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
     }
 }
 
+/**
+ * The different values possible along the X axis of the game board, i.e. the axis along a
+ * single letter-line.
+ */
 enum class NumberCoordinate {
     NULL, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE;
 
+    /** The minimum letter value of this line. */
     val min: LetterCoordinate get() = minMaxMapping[this]!!.first
+    /** The maximum letter value of this line. */
     val max: LetterCoordinate get() = minMaxMapping[this]!!.second
     companion object {
         private val minMaxMapping = mapOf(
-            NULL to Pair(LetterCoordinate.NULL, LetterCoordinate.NULL),
-            ONE to Pair(LetterCoordinate.A, LetterCoordinate.E),
-            TWO to Pair(LetterCoordinate.A,LetterCoordinate.F),
-            THREE to Pair(LetterCoordinate.A,LetterCoordinate.G),
-            FOUR to Pair(LetterCoordinate.A,LetterCoordinate.H),
-            FIVE to Pair(LetterCoordinate.A,LetterCoordinate.I),
-            SIX to Pair(LetterCoordinate.B,LetterCoordinate.I),
-            SEVEN to Pair(LetterCoordinate.C,LetterCoordinate.I),
-            EIGHT to Pair(LetterCoordinate.D,LetterCoordinate.I),
-            NINE to Pair(LetterCoordinate.E, LetterCoordinate.I),
+            NULL to (LetterCoordinate.NULL to LetterCoordinate.NULL),
+            ONE to (LetterCoordinate.A to LetterCoordinate.E),
+            TWO to (LetterCoordinate.A to LetterCoordinate.F),
+            THREE to (LetterCoordinate.A to LetterCoordinate.G),
+            FOUR to (LetterCoordinate.A to LetterCoordinate.H),
+            FIVE to (LetterCoordinate.A to LetterCoordinate.I),
+            SIX to (LetterCoordinate.B to LetterCoordinate.I),
+            SEVEN to (LetterCoordinate.C to LetterCoordinate.I),
+            EIGHT to (LetterCoordinate.D to LetterCoordinate.I),
+            NINE to (LetterCoordinate.E to LetterCoordinate.I),
         )
 
         fun convertNumber(letter: String): NumberCoordinate {
@@ -188,23 +225,29 @@ enum class NumberCoordinate {
     override fun toString(): String = ordinal.toString()
 }
 
+/**
+ * The different values possible along the Y axis of the game board, i.e. the axis along a
+ * single number-line.
+ */
 enum class LetterCoordinate {
     NULL, A, B, C, D, E, F, G, H, I;
 
+    /** The minimum number value of this line. */
     val min: NumberCoordinate get() = minMaxMapping[this]!!.first
+    /** The minimum number value of this line. */
     val max: NumberCoordinate get() = minMaxMapping[this]!!.second
     companion object {
         private val minMaxMapping = mapOf(
-            NULL to Pair(NumberCoordinate.NULL, NumberCoordinate.NULL),
-            A to Pair(NumberCoordinate.ONE, NumberCoordinate.FIVE),
-            B to Pair(NumberCoordinate.ONE, NumberCoordinate.SIX),
-            C to Pair(NumberCoordinate.ONE, NumberCoordinate.SEVEN),
-            D to Pair(NumberCoordinate.ONE, NumberCoordinate.EIGHT),
-            E to Pair(NumberCoordinate.ONE, NumberCoordinate.NINE),
-            F to Pair(NumberCoordinate.TWO, NumberCoordinate.NINE),
-            G to Pair(NumberCoordinate.THREE, NumberCoordinate.NINE),
-            H to Pair(NumberCoordinate.FOUR, NumberCoordinate.NINE),
-            I to Pair(NumberCoordinate.FIVE, NumberCoordinate.NINE),
+            NULL to (NumberCoordinate.NULL to NumberCoordinate.NULL),
+            A to (NumberCoordinate.ONE to NumberCoordinate.FIVE),
+            B to (NumberCoordinate.ONE to NumberCoordinate.SIX),
+            C to (NumberCoordinate.ONE to NumberCoordinate.SEVEN),
+            D to (NumberCoordinate.ONE to NumberCoordinate.EIGHT),
+            E to (NumberCoordinate.ONE to NumberCoordinate.NINE),
+            F to (NumberCoordinate.TWO to NumberCoordinate.NINE),
+            G to (NumberCoordinate.THREE to NumberCoordinate.NINE),
+            H to (NumberCoordinate.FOUR to NumberCoordinate.NINE),
+            I to (NumberCoordinate.FIVE to NumberCoordinate.NINE),
         )
         fun convertLetter(letter: String): LetterCoordinate {
             val letterCoordinate = when (letter) {
