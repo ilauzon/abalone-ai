@@ -124,5 +124,26 @@ class AbaloneFileIO private constructor() {
             }
             return stringActions
         }
+
+        /**
+         * Reads the board states in the string stored in a .board file.
+         *
+         * @param str the string stored in the file.
+         * @return a list of the board states described in the file.
+         */
+        fun readBoardsString(lines: List<String>): List<BoardState> {
+            val boards: MutableList<BoardState> = mutableListOf()
+            for (line in lines) {
+                val board = BoardState()
+                for (token in line.split(",").map { it.trim() }.filter { it.length == 3 }) {
+                    val letter = LetterCoordinate.entries[token[0] - 'A' + 1]
+                    val number = NumberCoordinate.entries[token[1] - '0']
+                    val colour = if (token[2] == 'b') Piece.Black else Piece.White
+                    board.cells[Coordinate.get(letter, number)] = colour
+                }
+                boards.add(board)
+            }
+            return boards.toList()
+        }
     }
 }

@@ -1,6 +1,8 @@
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.time.TimeSource
 
 class StateSpaceGeneratorTest {
@@ -63,11 +65,7 @@ class StateSpaceGeneratorTest {
         val boards: MutableList<StateRepresentation> = mutableListOf()
         val actions: List<Action> = StateSpaceGenerator.actions(boardState).toList()
         for (action in actions) {
-            println("------------------------------------------------------------")
             val resultState = StateSpaceGenerator.result(boardState, action)
-            println("ACTION: $action")
-            println("STATE:")
-            println(resultState.toStringPretty())
             boards.add(resultState)
         }
 
@@ -78,7 +76,42 @@ class StateSpaceGeneratorTest {
         // write output to respective files
         AbaloneFileIO.writeDataFile(outputMoveFile, actionsStrings)
         AbaloneFileIO.writeDataFile(outputBoardFile, boardStrings)
-        TODO("Finish test for Test1.input")
+
+        val testBoards = AbaloneFileIO.readBoardsString(
+            AbaloneFileIO.readDataFile("examples/Test1.board")
+        )
+        println("Test board count: ${testBoards.size}")
+        val generatedBoards = AbaloneFileIO.readBoardsString(boardStrings)
+        println("Generated board count: ${generatedBoards.size}")
+        assertEquals(testBoards.size, generatedBoards.size)
+
+        var testBoardsLeft = testBoards.size
+        for (board in generatedBoards) {
+            var boardMatch: BoardState? = null
+
+            testBoard@ for (testBoard in testBoards) {
+                var allEqual = true
+                letter@ for (letter in LetterCoordinate.entries.drop(1)) {
+                    for (number in letter.min .. letter.max) {
+                        val coord = Coordinate.get(letter, number)
+                        if (board.cells[coord] != testBoard.cells[coord]) {
+                            allEqual = false
+                            break@letter
+                        }
+                    }
+                }
+
+                if (allEqual) {
+                    boardMatch = testBoard
+                    testBoardsLeft--
+                }
+            }
+
+            assertNotNull(boardMatch, "A board was generated that is not present" +
+                    " in the reference file.\n${board.toStringPretty()}")
+        }
+        assertEquals(0, testBoardsLeft)
+        println("All boards equal.")
     }
 
     /**

@@ -84,6 +84,10 @@ class BoardState {
         fillBoardWithEmpty(cells)
     }
 
+    constructor() {
+        fillBoardWithEmpty(cells)
+    }
+
     constructor(layout: Layout) {
         when (layout) {
             Layout.STANDARD -> setBoard(generateStandardLayout())
@@ -103,7 +107,7 @@ class BoardState {
     }
 
     companion object {
-        private fun fillBoardWithEmpty(
+        fun fillBoardWithEmpty(
             board: HashMap<Coordinate, Piece>
         ) {
             for (l: LetterC in LetterC.entries.drop(1)) {
