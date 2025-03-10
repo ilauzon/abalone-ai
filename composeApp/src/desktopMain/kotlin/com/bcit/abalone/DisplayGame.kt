@@ -39,9 +39,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 /**
  * The view for the game board.
@@ -57,10 +61,14 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val redPiecesTaken = viewModel.redPiecesTaken.value
     val blueTimeRemaining = viewModel.blueTimeRemaining.value
     val redTimeRemaining = viewModel.redTimeRemaining.value
-    val isPaused = viewModel.isPaused.value
+    val isPaused = viewModel.isPaused
+
+    val selectedLayout = viewModel.selectedLayout
 
     val blueTimePerTurn = viewModel.p1TimeLimit
     val redTimePerTurn = viewModel.p2TimeLimit
+    var timeJob = viewModel.timerJob
+
     val moveLimit = viewModel.moveLimit
     val durationPerMove = viewModel.moveDuration.value
 
@@ -159,10 +167,10 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Column (horizontalAlignment = Alignment.CenterHorizontally) {
                 if (currentPlayer == Piece.Black) {
                     Text("P1", fontSize = 50.sp, fontWeight = FontWeight.Bold)
-                    playerTimer(blueTimePerTurn)
+                    playerTimer(viewModel.p1TimeLimit, isPaused, viewModel)
                 } else {
                     Text("P2", fontSize = 50.sp, fontWeight = FontWeight.Bold)
-                    playerTimer(redTimePerTurn)
+                    playerTimer(viewModel.p2TimeLimit, isPaused, viewModel)
                 }
                 Spacer(modifier = Modifier.height(40.dp))
                 // Below is the board
@@ -211,7 +219,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     Text("Start / Reset")
                 }
                 Button(onClick = { viewModel.pauseOrResumeGame() }, modifier = Modifier.padding(1.dp)) {
-                    Text( if(isPaused) "Resume" else "Stop / Pause")
+                    Text( if(isPaused.value) "Resume" else "Pause / Resume")
                 }
                 Button(onClick = {viewModel.undoLastMove() }, modifier = Modifier.padding(1.dp)) {
                     Text("Undo")
@@ -278,23 +286,29 @@ fun TableCell(text:String){
         Text(text, modifier = Modifier.padding(1.5.dp, 0.dp), fontSize = 14.sp)
     }
 }
-fun countDownFlow(startTime: Float) = flow {
+fun countDownFlow(startTime: Float, isPausedFlow: StateFlow<Boolean>) = flow {
     var time = startTime
     while(time >= 0) {
-        emit(time)
-        delay(1000L)
-        time--
+        if (!isPausedFlow.value) {
+            emit(time)
+            delay(1000L)
+            time--
+        } else {
+            delay(1000L)
+        }
     }
 }
 
 @Composable
-fun playerTimer(timePerTurn: Float){
+fun playerTimer(timePerTurn: Float, isPausedFlow: StateFlow<Boolean>, viewModel: AbaloneViewModel){
     var timeLeft by remember { mutableStateOf(timePerTurn) }
 
-    LaunchedEffect(Unit){
-        timeLeft = timePerTurn
-        countDownFlow(timePerTurn).collectLatest { newTime ->
-            timeLeft = newTime
+    LaunchedEffect(timePerTurn, isPausedFlow, viewModel.currentPlayer.value) {
+        viewModel.timerJob?.cancel()
+        viewModel.timerJob = viewModel.viewModelScope.launch {
+            countDownFlow(timePerTurn, isPausedFlow).collectLatest { newTime ->
+                timeLeft = newTime
+            }
         }
     }
 
