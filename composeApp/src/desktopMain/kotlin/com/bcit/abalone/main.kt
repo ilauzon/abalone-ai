@@ -15,6 +15,7 @@ fun main() = application {
     val viewModel: AbaloneViewModel = remember {AbaloneViewModel()}
     var showGameWindow by remember { mutableStateOf(false) }
     var showConfigWindow by remember { mutableStateOf(true) }
+    var showStateSpaceGeneratorWindow by remember { mutableStateOf(false)}
 
     if (showGameWindow) {
         Window(
@@ -38,10 +39,31 @@ fun main() = application {
                 height = 720.dp
             )
         ) {
-            ConfigMenu(viewModel, onApplySettings = {
-                showGameWindow = true
-                showConfigWindow = false
-            })
+            ConfigMenu(viewModel,
+                onApplySettings = {
+                    showGameWindow = true
+                    showConfigWindow = false
+                    showStateSpaceGeneratorWindow = false
+            },
+                onGeneratorView = {
+                    showGameWindow = false
+                    showConfigWindow = false
+                    showStateSpaceGeneratorWindow = true
+                })
         }
+    }
+
+    if (showStateSpaceGeneratorWindow) {
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "abalone",
+            state = rememberWindowState(
+                width = 720.dp,
+                height = 720.dp,
+            )
+        ) {
+            StateSpaceGenerator()
+        }
+
     }
 }

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
  * - The time limit of the game, per player
  */
 @Composable
-fun ConfigMenu(viewModel: AbaloneViewModel, onApplySettings: () -> Unit) {
+fun ConfigMenu(viewModel: AbaloneViewModel, onApplySettings: () -> Unit, onGeneratorView: () -> Unit) {
     /** The board layout (Standard, Belgian Daisy, German Daisy). */
     var selectedLayout by remember { mutableStateOf("Standard") }
     /** The game mode (vs. Human, vs. Computer). */
@@ -99,13 +99,16 @@ fun ConfigMenu(viewModel: AbaloneViewModel, onApplySettings: () -> Unit) {
                     valueRange = 5f..60f)
             }
         }
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             Button(onClick = {
                 viewModel.updateSettings(p1TimeLimit, p2TimeLimit, selectedLayout, selectedMode, player1Color, moveLimit)
                 onApplySettings()
                 println("Settings applied! ${p1TimeLimit}, ${p2TimeLimit}")
             }) {
                 Text("Apply Settings")
+            }
+            Button(onClick = {onGeneratorView()}){
+                Text("Go to State Space Generator")
             }
         }
     }
