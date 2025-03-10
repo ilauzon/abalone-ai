@@ -2,6 +2,8 @@ package com.bcit.abalone
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 
 
 class AbaloneViewModel : ViewModel() {
@@ -18,10 +20,14 @@ class AbaloneViewModel : ViewModel() {
     var blueTimeRemaining = mutableStateOf(totalTimePerPlayer)
     var redTimeRemaining = mutableStateOf(totalTimePerPlayer)
 
-    var isPaused = mutableStateOf(false)
+    var isPaused = MutableStateFlow(false)
 
     var p1TimeLimit by mutableStateOf(60f)
+    var p1MaxTimePerTurn by mutableStateOf(60f)
     var p2TimeLimit by mutableStateOf(60f)
+    var p2MaxTimePerTurn by mutableStateOf(60f)
+    var timerJob: Job? = null
+
     var selectedLayout by mutableStateOf("Standard")
     var selectedMode by mutableStateOf("Vs. Human")
     var player1Color by mutableStateOf("Black")
@@ -42,6 +48,11 @@ class AbaloneViewModel : ViewModel() {
         redTimeRemaining.value = totalTimePerPlayer
         moveStartTime.value = System.currentTimeMillis()
         isPaused.value = false
+        p1TimeLimit = p1MaxTimePerTurn
+        println("p1TimeLimit after reset: $p1TimeLimit")
+        p2TimeLimit = p2MaxTimePerTurn
+        println("p2TimeLimit after reset: $p2TimeLimit")
+        timerJob?.cancel()
         moveHistory.clear()
     }
 
@@ -301,7 +312,9 @@ class AbaloneViewModel : ViewModel() {
         moves: Float
     ){
         p1TimeLimit = p1Time
+        p1MaxTimePerTurn = p1Time
         p2TimeLimit = p2Time
+        p2MaxTimePerTurn = p2Time
         selectedLayout = layout
         selectedMode = mode
         player1Color = p1Color
