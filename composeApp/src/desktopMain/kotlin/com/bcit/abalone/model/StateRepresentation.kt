@@ -127,11 +127,39 @@ class BoardState {
         }
 
         private fun generateBelgianDaisyLayout(): Map<Coordinate, Piece> {
-            TODO("implement the layout generation function for the Belgian Daisy.")
+            val board = HashMap<Coordinate, Piece>()
+            fillBoardWithEmpty(board)
+            fillBoardLetter(board, LetterC.A, Piece.Black, LetterC.A.min .. LetterC.A.min + 1)
+            fillBoardLetter(board, LetterC.B, Piece.Black, LetterC.B.min .. LetterC.B.min + 2)
+            fillBoardLetter(board, LetterC.C, Piece.Black, LetterC.C.min + 1 .. LetterC.C.min + 2)
+            fillBoardLetter(board, LetterC.A, Piece.White, LetterC.A.max - 1 .. LetterC.A.max)
+            fillBoardLetter(board, LetterC.B, Piece.White, LetterC.B.max - 2 .. LetterC.B.max)
+            fillBoardLetter(board, LetterC.C, Piece.White, LetterC.C.max - 2 .. LetterC.C.max - 1)
+            fillBoardLetter(board, LetterC.G, Piece.White, LetterC.G.min + 1 .. LetterC.G.min + 2)
+            fillBoardLetter(board, LetterC.H, Piece.White, LetterC.H.min .. LetterC.H.min + 2)
+            fillBoardLetter(board, LetterC.I, Piece.White, LetterC.I.min .. LetterC.I.min + 1)
+            fillBoardLetter(board, LetterC.G, Piece.Black, LetterC.G.max - 2 .. LetterC.G.max - 1)
+            fillBoardLetter(board, LetterC.H, Piece.Black, LetterC.H.max - 2 .. LetterC.H.max)
+            fillBoardLetter(board, LetterC.I, Piece.Black, LetterC.I.max - 1 .. LetterC.I.max)
+            return board
         }
 
         private fun generateGermanDaisyLayout(): Map<Coordinate, Piece> {
-            TODO("implement the layout generation function for the German Daisy.")
+            val board = HashMap<Coordinate, Piece>()
+            fillBoardWithEmpty(board)
+            fillBoardLetter(board, LetterC.B, Piece.Black, LetterC.B.min .. LetterC.B.min + 1)
+            fillBoardLetter(board, LetterC.C, Piece.Black, LetterC.C.min .. LetterC.C.min + 2)
+            fillBoardLetter(board, LetterC.D, Piece.Black, LetterC.D.min + 1 .. LetterC.D.min + 2)
+            fillBoardLetter(board, LetterC.B, Piece.White, LetterC.B.max - 1 .. LetterC.B.max)
+            fillBoardLetter(board, LetterC.C, Piece.White, LetterC.C.max - 2 .. LetterC.C.max)
+            fillBoardLetter(board, LetterC.D, Piece.White, LetterC.D.max - 2 .. LetterC.D.max - 1)
+            fillBoardLetter(board, LetterC.H, Piece.White, LetterC.H.min .. LetterC.H.min + 1)
+            fillBoardLetter(board, LetterC.G, Piece.White, LetterC.G.min .. LetterC.G.min + 2)
+            fillBoardLetter(board, LetterC.F, Piece.White, LetterC.F.min + 1 .. LetterC.F.min + 2)
+            fillBoardLetter(board, LetterC.H, Piece.Black, LetterC.H.max - 1 .. LetterC.H.max)
+            fillBoardLetter(board, LetterC.G, Piece.Black, LetterC.G.max - 2 .. LetterC.G.max)
+            fillBoardLetter(board, LetterC.F, Piece.Black, LetterC.F.max -2 .. LetterC.F.max - 1)
+            return board
         }
     }
 
