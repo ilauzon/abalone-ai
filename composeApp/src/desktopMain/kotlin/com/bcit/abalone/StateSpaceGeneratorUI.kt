@@ -18,6 +18,7 @@ import com.bcit.abalone.model.LetterCoordinate
 import com.bcit.abalone.model.NumberCoordinate
 import com.bcit.abalone.model.Player
 import com.bcit.abalone.model.StateRepresentation
+import com.bcit.abalone.model.StateSpaceGenerator
 import java.io.File
 import java.nio.file.Paths
 
@@ -70,18 +71,30 @@ fun StateSpaceGenerator(){
             }
             Column(modifier = Modifier.safeContentPadding()){
                 if (isFileLoaded and fileName.isNotEmpty()) {
-                    // TODO: here will run the State Space Generator and generate the output files,
-                    // delete this stuff later
+                    // create output file names
+                    val outputMoveFile = "${fileName.split(".")[0]}.move"
+                    val outputBoardFile = "${fileName.split(".")[0]}.board"
+
+                    // read the file input
                     val text = readDataFile(fileName)
-                    DisplayData(text)
+
+                    //parse board from file
                     val boardState = parseState(text[0], text[1])
-                    Text(boardState.toString())
-                    val mutableList = mutableListOf<String>()
-                    for (index in 1 until 10) {
-                        mutableList.add(stringifyBoard(boardState))
+
+                    // feed board into StateSpaceGenerator
+                    val boards:MutableList<StateRepresentation> = mutableListOf()
+                    val actions: List<Action> = StateSpaceGenerator.actions(boardState).toList()
+                    for (action in actions) {
+                        boards.add(StateSpaceGenerator.result(boardState, action))
                     }
-                    Text(stringifyBoard(boardState))
-                    writeDataFile("Test2.board", mutableList)
+
+                    // turn actions and boards into strings for file output
+                    val actionsStrings = stringifyActions(actions)
+                    val boardStrings = stringifyBoards(boards)
+
+                    // write output to respective files
+                    writeDataFile(outputMoveFile, actionsStrings)
+                    writeDataFile(outputBoardFile, boardStrings)
                 }
             }
         }
@@ -196,18 +209,6 @@ fun stringifyActions(actions: List<Action>): List<String> {
         stringActions.add(stringifyAction(it))
     }
     return stringActions
-}
-
-/**
- * TODO: get rid of this after everything works
- *
- * @param data
- */
-@Composable
-fun DisplayData(data: List<String>){
-    for (datum in data) {
-        Text(datum)
-    }
 }
 
 /**
