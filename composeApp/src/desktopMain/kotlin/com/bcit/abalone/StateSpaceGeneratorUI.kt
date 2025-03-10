@@ -11,21 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.bcit.abalone.model.AbaloneFileIO
 import com.bcit.abalone.model.Action
-import com.bcit.abalone.model.BoardState
-import com.bcit.abalone.model.Coordinate
-import com.bcit.abalone.model.LetterCoordinate
-import com.bcit.abalone.model.NumberCoordinate
-import com.bcit.abalone.model.Player
 import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator
 import java.io.File
 import java.nio.file.Paths
-
-const val MAX_PIECES = 14
-const val SAMPLE_MOVE_TIME = 30
-const val BLACK_MOVE_REMAINING = 30
-const val WHITE_MOVE_REMAINING = 31
 
 @Composable
 fun StateSpaceGenerator(){
@@ -76,10 +67,10 @@ fun StateSpaceGenerator(){
                     val outputBoardFile = "${fileName.split(".")[0]}.board"
 
                     // read the file input
-                    val text = readDataFile(fileName)
+                    val text = AbaloneFileIO.readDataFile(fileName)
 
                     //parse board from file
-                    val boardState = parseState(text[0], text[1])
+                    val boardState = AbaloneFileIO.parseState(text[0], text[1])
 
                     // feed board into StateSpaceGenerator
                     val boards:MutableList<StateRepresentation> = mutableListOf()
@@ -89,12 +80,12 @@ fun StateSpaceGenerator(){
                     }
 
                     // turn actions and boards into strings for file output
-                    val actionsStrings = stringifyActions(actions)
-                    val boardStrings = stringifyBoards(boards)
+                    val actionsStrings = AbaloneFileIO.stringifyActions(actions)
+                    val boardStrings = AbaloneFileIO.stringifyBoards(boards)
 
                     // write output to respective files
-                    writeDataFile(outputMoveFile, actionsStrings)
-                    writeDataFile(outputBoardFile, boardStrings)
+                    AbaloneFileIO.writeDataFile(outputMoveFile, actionsStrings)
+                    AbaloneFileIO.writeDataFile(outputBoardFile, boardStrings)
                 }
             }
         }
@@ -102,121 +93,11 @@ fun StateSpaceGenerator(){
 }
 
 /**
- * Writes the given list of states to a text file.
- *
- * @param path a string
- * @param outputList a List<String>
- */
-fun writeDataFile(path: String, outputList: List<String>) {
-    File(path).writeText(outputList.joinToString("\n"))
-}
-
-/**
- * Reads the given text file and returns the contents.
- *
- * @param path a string
- * @return file contents as a string
- */
-fun readDataFile(path: String): List<String>{
-    val text = File(path).readLines()
-    return text
-}
-
-/**
- * Parses the given board as a string into a StateRepresentation object.
- *
- * @param board as a string
- * @return board as a StateRepresentation object
- */
-fun parseState(currentPlayer: String, board: String): StateRepresentation{
-    val marbleLayout: MutableMap<Coordinate, Piece> = mutableMapOf()
-    val boardList: List<String> = board.split(",")
-    var blackPieceCount = 0
-    var whitePieceCount = 0
-    for (cell in boardList) {
-        val coordinate = Coordinate.get(
-            LetterCoordinate.convertLetter(cell.substring(0,1)),
-            NumberCoordinate.convertNumber(cell.substring(1,2))
-        )
-        val piece: Piece = Piece.convertPiece(cell.substring(2))
-        if (piece == Piece.Black) blackPieceCount++
-        if (piece == Piece.White) whitePieceCount++
-        marbleLayout[coordinate] = piece
-    }
-    val marbleLayoutMap: Map<Coordinate, Piece> = marbleLayout.toMap()
-    val boardState = BoardState(marbleLayoutMap)
-    val blackPlayer = Player(MAX_PIECES - blackPieceCount, SAMPLE_MOVE_TIME)
-    val whitePlayer = Player(MAX_PIECES - whitePieceCount, SAMPLE_MOVE_TIME)
-    val players = mapOf(Piece.Black to blackPlayer, Piece.White to whitePlayer)
-    val currentPlayerPiece = if (currentPlayer == "b") Piece.Black else Piece.White
-    val movesRemaining = if (currentPlayer == "b") BLACK_MOVE_REMAINING else WHITE_MOVE_REMAINING
-    return StateRepresentation(boardState, players, movesRemaining, currentPlayerPiece)
-}
-
-/**
- * Returns the given board as a string
- *
- * @param board a StateRepresentation object
- * @return board as a string
- */
-fun stringifyBoard(board: StateRepresentation): String {
-    val boardList: MutableList<String> = mutableListOf()
-    val currentBoard = board.getBoardState()
-    val cells = currentBoard.cells
-    cells.forEach { (coordinate, piece) ->
-        if (piece != Piece.Empty && coordinate != Coordinate.offBoard) {
-            boardList.add("$coordinate$piece")
-        }
-    }
-    boardList.sort()
-    val boardString = boardList.joinToString(",")
-    return boardString
-}
-
-/**
- * Returns the given list of boards as a list of strings.
- *
- * @param boards List<StateRepresentation>
- * @return boards as a List<String>
- */
-fun stringifyBoards(boards: List<StateRepresentation>): List<String> {
-    val stringBoards: MutableList<String> = mutableListOf()
-    boards.forEach {
-        stringBoards.add(stringifyBoard(it))
-    }
-    return stringBoards
-}
-
-/**
- * Returns the action as a string
- *
- * @param action an Action object
- * @return action as a string
- */
-fun stringifyAction(action: Action): String {
-    return "${action.coordinates} ${action.direction}"
-}
-
-/**
- * Returns the given list of actions as a list of strings.
- *
- * @param actions List<Action>
- * @return actions as a List<String>
- */
-fun stringifyActions(actions: List<Action>): List<String> {
-    val stringActions: MutableList<String> = mutableListOf()
-    actions.forEach {
-        stringActions.add(stringifyAction(it))
-    }
-    return stringActions
-}
-
-/**
  * Returns a list of all the .input files in the current directory.
  *
  * @return .input files as a SnapShotStateList<String> object
  */
-fun getAllFiles(): SnapshotStateList<String?> {
+private fun getAllFiles(): SnapshotStateList<String?> {
     val path = Paths.get("").toAbsolutePath().toString()
     val files = File(path).listFiles()
     val fileNames = arrayOfNulls<String>(files?.size ?: 0 )

@@ -57,6 +57,16 @@ class StateRepresentation(
         
         """.trimIndent() + board
     }
+
+    fun toStringPretty(): String {
+        val bl = players[Piece.Black]!!
+        val wh = players[Piece.White]!!
+        return """
+        Black (◯): score = ${bl.score}, moves left = ${movesRemaining(Piece.Black)}, move time = ${bl.moveTime}
+        White (◉): score = ${wh.score}, moves left = ${movesRemaining(Piece.White)}, move time = ${wh.moveTime}
+        
+        """.trimIndent() + board.toStringPretty()
+    }
 }
 
 /**
@@ -201,6 +211,50 @@ class BoardState {
                B ${letterRowToString(LetterC.B)}7
                 A ${letterRowToString(LetterC.A)}6
                     1 2 3 4 5
+        """.trimIndent()
+
+        return returnString
+    }
+
+    fun toStringPretty(): String {
+        val letterRowToString = {letter: LetterC ->
+            val prefix = when (letter) {
+                in LetterC.F .. LetterC.I -> " "
+                in LetterC.A .. LetterC.D -> " "
+                else -> " "
+            }
+            val postfix = when (letter) {
+                in LetterC.F .. LetterC.I -> " "
+                in LetterC.A .. LetterC.D -> " "
+                else -> " "
+            }
+            (letter.min .. letter.max).joinToString(
+                separator = " ",
+                prefix = prefix,
+                postfix = postfix,
+                transform = {
+                    val piece = cells[Coordinate.get(letter, it)]!!
+                    when (piece) {
+                        Piece.Empty -> "∙"
+                        Piece.Black -> "◯"
+                        Piece.White -> "◉"
+                        Piece.OffBoard -> " "
+                    }
+                }
+            )
+        }
+
+        val returnString = """
+                I${letterRowToString(LetterC.I)} 
+               H${letterRowToString(LetterC.H)} 
+              G${letterRowToString(LetterC.G)} 
+             F${letterRowToString(LetterC.F)} 
+            E${letterRowToString(LetterC.E)} 
+             D${letterRowToString(LetterC.D)}9
+              C${letterRowToString(LetterC.C)}8
+               B${letterRowToString(LetterC.B)}7
+                A${letterRowToString(LetterC.A)}6
+                   1 2 3 4 5
         """.trimIndent()
 
         return returnString

@@ -1,7 +1,6 @@
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.*
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.time.TimeSource
 
 class StateSpaceGeneratorTest {
@@ -41,6 +40,48 @@ class StateSpaceGeneratorTest {
             println("Action: $action")
             println("State:\n${state}")
         }
+    }
+
+    /**
+     * Tests the state space generator on the Test1.input and Test1.board files provided for
+     * the project.
+     */
+    @Test
+    fun test1() {
+        // read the file input
+        val text = AbaloneFileIO.readDataFile("examples/Test1.board")
+
+        //parse board from file
+        val boardState = AbaloneFileIO.parseState(text[0], text[1])
+
+        println("INITIAL STATE: ")
+        println(boardState.toStringPretty())
+
+        // feed board into StateSpaceGenerator
+        val boards: MutableList<StateRepresentation> = mutableListOf()
+        val actions: List<Action> = StateSpaceGenerator.actions(boardState).toList()
+        for (action in actions) {
+            println("------------------------------------------------------------")
+            val resultState = StateSpaceGenerator.result(boardState, action)
+            println("ACTION: $action")
+            println("STATE:")
+            println(resultState.toStringPretty())
+            boards.add(resultState)
+        }
+
+        // turn actions and boards into strings for file output
+        val actionsStrings = AbaloneFileIO.stringifyActions(actions)
+        val boardStrings = AbaloneFileIO.stringifyBoards(boards)
+        TODO("Finish test for Test1.input")
+    }
+
+    /**
+     * Tests the state space generator on the Test2.input and Test2.board files provided for
+     * the project.
+     */
+    @Test
+    fun test2() {
+        TODO("Add test for Test2.input")
     }
 
     @Test
