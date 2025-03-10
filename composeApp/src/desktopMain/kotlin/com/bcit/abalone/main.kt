@@ -1,6 +1,5 @@
 package com.bcit.abalone
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
