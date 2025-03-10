@@ -4,13 +4,47 @@
  */
 package com.bcit.abalone.model
 
-class Coordinate(
-    val letter: LetterCoordinate,
-    val number: NumberCoordinate
-) {
+import com.bcit.abalone.Piece
+import java.lang.IllegalArgumentException
+
+class Coordinate private constructor(val letter: LetterCoordinate, val number: NumberCoordinate) {
 
     companion object {
         val offBoard = Coordinate(LetterCoordinate.NULL, NumberCoordinate.NULL)
+        private val coordinates: HashMap<Int, Coordinate> = HashMap()
+
+        init {
+            for (l: LetterCoordinate in LetterCoordinate.entries) {
+                for (n: NumberCoordinate in l.min .. l.max) {
+                    coordinates[hash(l, n)] = Coordinate(l, n)
+                }
+            }
+        }
+
+        /**
+         * Returns the Coordinate instance with the given letter and number.
+         *
+         * @param letter the letter coordinate.
+         * @param number the number coordinate.
+         * @return an existing Coordinate instance.
+         */
+        fun get(letter: LetterCoordinate, number: NumberCoordinate): Coordinate {
+            if (number < letter.min || number > letter.max) {
+                throw IllegalArgumentException("Coordinate $letter$number does not exist on the board")
+            }
+            return coordinates[hash(letter, number)]!!
+        }
+
+        /**
+         * Returns a hash value of a letter and number.
+         *
+         * @param letter the letter coordinate.
+         * @param number the number coordinate.
+         * @return the hash value.
+         */
+        private fun hash(letter: LetterCoordinate, number: NumberCoordinate): Int {
+            return letter.ordinal * 16 + number.ordinal
+        }
     }
 
     /**
@@ -92,7 +126,7 @@ class Coordinate(
 
     // TODO verify that this produces unique hashes for all possible coordinates.
     override fun hashCode(): Int {
-        return letter.ordinal * 16 + number.ordinal
+        return hash(letter, number)
     }
 }
 

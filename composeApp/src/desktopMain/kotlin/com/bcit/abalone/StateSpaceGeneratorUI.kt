@@ -134,7 +134,7 @@ fun parseState(currentPlayer: String, board: String): StateRepresentation{
     var blackPieceCount = 0
     var whitePieceCount = 0
     for (cell in boardList) {
-        val coordinate = Coordinate(
+        val coordinate = Coordinate.get(
             LetterCoordinate.convertLetter(cell.substring(0,1)),
             NumberCoordinate.convertNumber(cell.substring(1,2))
         )

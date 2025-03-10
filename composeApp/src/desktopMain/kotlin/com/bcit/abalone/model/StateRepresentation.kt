@@ -99,7 +99,7 @@ class BoardState {
         ) {
             for (l: LetterC in LetterC.entries.drop(1)) {
                 for (n: NumberC in NumberC.entries.slice(l.min.ordinal..l.max.ordinal)) {
-                    board[Coordinate(l, n)] = Piece.Empty
+                    board[Coordinate.get(l, n)] = Piece.Empty
                 }
             }
             board[Coordinate.offBoard] = Piece.OffBoard
@@ -113,7 +113,7 @@ class BoardState {
         ) {
             for (n: NumberC in NumberC.entries.slice(letter.min.ordinal..letter.max.ordinal)) {
                 if (n in range) {
-                    board[Coordinate(letter, n)] = piece
+                    board[Coordinate.get(letter, n)] = piece
                 }
             }
         }
@@ -180,7 +180,7 @@ class BoardState {
                 prefix = "[",
                 postfix = "]",
                 transform = {
-                    val piece = cells[Coordinate(letter, it)]!!
+                    val piece = cells[Coordinate.get(letter, it)]!!
                     when (piece) {
                         Piece.Empty -> "0"
                         Piece.Black -> "1"
