@@ -18,7 +18,6 @@ class StateRepresentation(
     val movesRemaining: Int,
     val currentPlayer: Piece
 ) {
-
     init {
         if (players.keys.contains(Piece.Empty) || players.keys.contains(Piece.OffBoard)) {
             throw IllegalArgumentException(

@@ -124,7 +124,6 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
         return other.letter == letter && other.number == number
     }
 
-    // TODO verify that this produces unique hashes for all possible coordinates.
     override fun hashCode(): Int {
         return hash(letter, number)
     }

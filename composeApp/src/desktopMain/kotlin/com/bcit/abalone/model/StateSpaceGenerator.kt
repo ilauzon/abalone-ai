@@ -214,6 +214,28 @@ class StateSpaceGenerator {
            return newState
        }
 
+       fun expand(state: StateRepresentation, depth: Int): List<Pair<Action, StateRepresentation>> {
+           if (depth == 1) {
+               return expandOnce(state)
+           }
+           val actionStates = expand(state, depth - 1)
+           val newActionStates = mutableListOf<Pair<Action, StateRepresentation>>()
+           for ((_, newState) in actionStates) {
+               newActionStates.addAll(expandOnce(newState))
+           }
+           return newActionStates
+       }
+
+       private fun expandOnce(state: StateRepresentation): List<Pair<Action, StateRepresentation>> {
+           val actions = actions(state)
+           val actionStates = mutableListOf<Pair<Action, StateRepresentation>>()
+           actions.forEach {
+               val newState = result(state, it)
+               actionStates.add(it to newState)
+           }
+           return actionStates
+       }
+
        /**
         * The __Goal Test__.
         *
