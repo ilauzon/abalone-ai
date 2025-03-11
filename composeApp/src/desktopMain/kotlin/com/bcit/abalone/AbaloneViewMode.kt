@@ -2,12 +2,15 @@ package com.bcit.abalone
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 
 class AbaloneViewModel : ViewModel() {
-    var boardState = mutableStateOf(createBoard())
+    var selectedLayout by mutableStateOf("Standard")
+    var boardState = mutableStateOf(createBoard(selectedLayout))
     var currentPlayer = mutableStateOf(Piece.Black)
     var blueMoveNumber = mutableStateOf(0)
     var redMoveNumber = mutableStateOf(0)
@@ -28,21 +31,19 @@ class AbaloneViewModel : ViewModel() {
     var p2MaxTimePerTurn by mutableStateOf(60f)
     var timerJob: Job? = null
 
-    var selectedLayout by mutableStateOf("Standard")
+
     var selectedMode by mutableStateOf("Vs. Human")
     var player1Color by mutableStateOf("Black")
     var moveLimit by mutableStateOf(50f)
 
     var pausedTimeRemaining = 0L
     var deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
-
-
-
-
     val moveHistory = mutableStateListOf<MoveRecord>()
 
+
     fun resetGame() {
-        boardState.value = createBoard()
+        selectedLayout = selectedLayout
+        boardState.value = createBoard(selectedLayout)
         currentPlayer.value = Piece.Black
         blueMoveNumber.value = 0
         redMoveNumber.value = 0
