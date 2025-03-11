@@ -7,7 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-
+//  In this class, blue related variable is P1, red related variable is P2
 class AbaloneViewModel : ViewModel() {
     var selectedLayout by mutableStateOf("Standard")
     var boardState = mutableStateOf(createBoard(selectedLayout))

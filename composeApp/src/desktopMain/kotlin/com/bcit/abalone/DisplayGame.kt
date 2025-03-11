@@ -34,7 +34,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +76,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val moveLimit = viewModel.moveLimit
     val durationPerMove = viewModel.moveDuration.value
 
+    val blackGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Black), center = Offset(22.5f,22.5f),radius = 22.5f)
+    val whiteGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Gray), center = Offset(22.5f,22.5f), radius = 22.5f)
+
 
     Row(modifier = Modifier.fillMaxSize()) {
         // Left panel for table including marbles out, moves, and time.
@@ -87,7 +94,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$bluePiecesTaken", fontSize = 90.sp, color = Color.Blue)
+                Text("$bluePiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
             }
             Spacer(modifier = Modifier.height(100.dp))
             Row{
@@ -115,7 +122,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         TableCell(formatTime(blueTimeRemaining))
                         if (currentPlayer == Piece.Black) {
                             Box(
-                                modifier = Modifier.background(Color.Blue).fillMaxWidth()
+                                modifier = Modifier.background(blackGradient).fillMaxWidth()
                                     .height(25.dp)
                             )
                         } else {
@@ -135,7 +142,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         TableCell(formatTime(redTimeRemaining))
                         if (currentPlayer == Piece.White) {
                             Box(
-                                modifier = Modifier.background(Color.Red).fillMaxWidth()
+                                modifier = Modifier.background(whiteGradient).fillMaxWidth()
                                     .height(25.dp)
                             )
                         } else {
@@ -149,7 +156,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$redPiecesTaken", fontSize = 90.sp, color = Color.Red)
+                Text("$redPiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
             }
 
         }
@@ -166,10 +173,10 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             // Draw game board
             Column (horizontalAlignment = Alignment.CenterHorizontally) {
                 if (currentPlayer == Piece.Black) {
-                    Text("P1", fontSize = 50.sp, fontWeight = FontWeight.Bold)
+                    Text("P1", fontSize = 50.sp, fontWeight = FontWeight.Bold, color=Color(0xFF6A25BE))
                     playerTimer(viewModel.p1TimeLimit, isPaused, viewModel)
                 } else {
-                    Text("P2", fontSize = 50.sp, fontWeight = FontWeight.Bold)
+                    Text("P2", fontSize = 50.sp, fontWeight = FontWeight.Bold, color=Color(0xFF6A25BE))
                     playerTimer(viewModel.p2TimeLimit, isPaused, viewModel)
                 }
                 Spacer(modifier = Modifier.height(40.dp))
@@ -192,15 +199,25 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                                             viewModel.selectMarbles(selectedCells, cell)
                                         }
                                     }
-                                    .background(
-                                        when (cell.piece) {
-                                            Piece.Black -> Color.Blue
-                                            Piece.White -> Color.Red
-                                            else -> Color.White
-                                        },
-                                        shape = CircleShape
-                                    )
-                                    .border(2.dp, if (isSelected) Color.Green else Color.Gray, CircleShape),
+                                    .border(2.dp, if (isSelected) Color.Green else Color.LightGray, CircleShape)
+//                                    .background(
+//                                        when (cell.piece) {
+//                                            Piece.Black -> blackGradient
+//                                            Piece.White -> whiteGradient
+//                                            else -> Color.LightGray
+//                                        },
+//                                        shape = CircleShape
+//                                    )
+                                    .drawBehind {
+                                        drawCircle(
+                                            brush = when (cell.piece) {
+                                                Piece.Black -> blackGradient
+                                                Piece.White -> whiteGradient
+                                                else -> SolidColor(Color.White) // Solid color for empty cells
+                                            }
+                                        )
+                                    },
+
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("${cell.letter}${cell.number}", fontSize = 20.sp)
@@ -280,7 +297,7 @@ fun TableCell(text:String){
     Box(
         modifier = Modifier
             .background(Color.White)
-            .border(BorderStroke(0.25.dp, Color.Black))
+            .border(BorderStroke(0.25.dp, Color.Cyan))
             .fillMaxWidth()
     ) {
         Text(text, modifier = Modifier.padding(1.5.dp, 0.dp), fontSize = 14.sp)
@@ -313,7 +330,7 @@ fun playerTimer(timePerTurn: Float, isPausedFlow: StateFlow<Boolean>, viewModel:
     }
 
     Text(
-        text = "Time left: $timeLeft s",
+        text = "Time left: ${timeLeft.toInt()} s",
         fontSize = 24.sp,
     )
 }
@@ -335,7 +352,7 @@ fun pathCard(moveRecord: AbaloneViewModel.MoveRecord) {
     ){
         Row(horizontalArrangement = Arrangement.SpaceEvenly){
             Text(
-                text = if (moveRecord.previousPlayer == Piece.White)"Red" else "Blue"
+                text = if (moveRecord.previousPlayer == Piece.White)"P2" else "P1"
             )
             Text(text = moveRecord.movePath)
             Text(text = "${moveRecord.moveDuration / 1000}s")
