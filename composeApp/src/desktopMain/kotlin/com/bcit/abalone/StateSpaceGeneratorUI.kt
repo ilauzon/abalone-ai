@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bcit.abalone.model.AbaloneFileIO
@@ -24,6 +25,7 @@ fun StateSpaceGenerator(){
     var fileNameDropdownInput by remember{ mutableStateOf("")}
     var fileName by remember{ mutableStateOf("")}
     var isFileLoaded by remember{ mutableStateOf(false)}
+    var isOutputFileLoaded by remember{ mutableStateOf(false)}
     Box(modifier = Modifier.safeContentPadding()) {
 
         Column {
@@ -45,7 +47,7 @@ fun StateSpaceGenerator(){
                                 Box(modifier = Modifier
                                     .safeContentPadding()
                                     .clickable {
-                                    fileNameDropdownInput = text
+                                        fileNameDropdownInput = text
                                 }) {
                                     Text(text, style = MaterialTheme.typography.body1)
                                 }
@@ -84,8 +86,20 @@ fun StateSpaceGenerator(){
                     val boardStrings = AbaloneFileIO.stringifyBoards(boards)
 
                     // write output to respective files
-                    AbaloneFileIO.writeDataFile(outputMoveFile, actionsStrings)
-                    AbaloneFileIO.writeDataFile(outputBoardFile, boardStrings)
+                    AbaloneFileIO.writeDataFile(outputMoveFile, actionsStrings){
+                        AbaloneFileIO.writeDataFile(outputBoardFile, boardStrings){
+                            isOutputFileLoaded = true
+                        }
+                    }
+                    // generate file success message, highlight file selected
+                    if (isOutputFileLoaded) {
+                        Box(modifier = Modifier.safeContentPadding(),
+                            contentAlignment = Alignment.Center) {
+                            Text("Your $outputMoveFile and $outputBoardFile files are ready!" +
+                                    " They will be found in the same file as this executable is located." +
+                                    " To generate more state spaces, choose another file and press Enter again.")
+                        }
+                    }
                 }
             }
         }
