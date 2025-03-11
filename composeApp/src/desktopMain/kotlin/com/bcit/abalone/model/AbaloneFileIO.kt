@@ -21,8 +21,9 @@ class AbaloneFileIO private constructor() {
          * @param path a string
          * @param outputList a List<String>
          */
-        fun writeDataFile(path: String, outputList: List<String>) {
+        fun writeDataFile(path: String, outputList: List<String>, callback: () -> Unit) {
             File(path).writeText(outputList.joinToString("\n"))
+            callback()
         }
 
         /**
@@ -74,7 +75,7 @@ class AbaloneFileIO private constructor() {
          * @return board as a string
          */
         fun stringifyBoard(board: StateRepresentation): String {
-            val boardList: MutableList<String> = mutableListOf()
+            var boardList: MutableList<String> = mutableListOf()
             val currentBoard = board.getBoardState()
             val cells = currentBoard.cells
             cells.forEach { (coordinate, piece) ->
@@ -82,7 +83,11 @@ class AbaloneFileIO private constructor() {
                     boardList.add("$coordinate$piece")
                 }
             }
-            boardList.sort()
+            boardList =  boardList.sortedWith(compareBy(
+                { it[2] },
+                { it[0] },
+                { it[1].digitToInt() }
+            )).toMutableList()
             val boardString = boardList.joinToString(",")
             return boardString
         }
