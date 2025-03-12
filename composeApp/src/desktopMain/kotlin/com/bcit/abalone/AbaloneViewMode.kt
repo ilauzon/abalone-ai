@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 
 class AbaloneViewModel : ViewModel() {
     var selectedLayout by mutableStateOf("Standard")
+
     var boardState = mutableStateOf(createBoard(selectedLayout))
     var currentPlayer = mutableStateOf(Piece.Black)
     var blueMoveNumber = mutableStateOf(0)
@@ -59,6 +60,7 @@ class AbaloneViewModel : ViewModel() {
         println("p2TimeLimit after reset: $p2TimeLimit")
         timerJob?.cancel()
         moveHistory.clear()
+//        println(boardState)
     }
 
     fun pauseOrResumeGame() {
@@ -334,6 +336,7 @@ class AbaloneViewModel : ViewModel() {
         selectedMode = mode
         player1Color = p1Color
         moveLimit = moves
+        boardState = mutableStateOf(createBoard(selectedLayout))
     }
 }
 

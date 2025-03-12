@@ -103,7 +103,7 @@ fun ConfigMenu(viewModel: AbaloneViewModel, onApplySettings: () -> Unit, onGener
             Button(onClick = {
                 viewModel.updateSettings(p1TimeLimit, p2TimeLimit, selectedLayout, selectedMode, player1Color, moveLimit)
                 onApplySettings()
-                println("Settings applied! ${p1TimeLimit}, ${p2TimeLimit}")
+                println("Settings applied! $selectedLayout")
             }) {
                 Text("Apply Settings")
             }
