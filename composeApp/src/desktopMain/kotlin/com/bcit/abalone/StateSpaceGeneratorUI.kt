@@ -26,7 +26,7 @@ fun StateSpaceGenerator(){
     var fileName by remember{ mutableStateOf("")}
     var isFileLoaded by remember{ mutableStateOf(false)}
     var isOutputFileLoaded by remember{ mutableStateOf(false)}
-    Box(modifier = Modifier.safeContentPadding()) {
+    Box(modifier = Modifier.padding(15.dp)) {
 
         Column {
             Text("State Space Generator", style = MaterialTheme.typography.h3)
