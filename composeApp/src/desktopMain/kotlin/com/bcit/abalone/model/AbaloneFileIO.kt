@@ -21,7 +21,7 @@ class AbaloneFileIO private constructor() {
          * @param path a string
          * @param outputList a List<String>
          */
-        fun writeDataFile(path: String, outputList: List<String>, callback: () -> Unit) {
+        fun writeDataFile(path: String, outputList: List<String>, callback: () -> Unit = { }) {
             File(path).writeText(outputList.joinToString("\n"))
             callback()
         }
@@ -133,7 +133,7 @@ class AbaloneFileIO private constructor() {
         /**
          * Reads the board states in the string stored in a .board file.
          *
-         * @param str the string stored in the file.
+         * @param lines the string stored in the file.
          * @return a list of the board states described in the file.
          */
         fun readBoardsString(lines: List<String>): List<BoardState> {

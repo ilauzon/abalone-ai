@@ -1,6 +1,5 @@
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.*
-import kotlin.math.sign
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -51,15 +50,55 @@ class StateSpaceGeneratorTest {
      */
     @Test
     fun test1() {
+        testInputFile("Test1")
+    }
+
+    /**
+     * Tests the state space generator on the Test2.input and Test2.board files provided for
+     * the project.
+     */
+    @Test
+    fun test2() {
+        testInputFile("Test2")
+    }
+
+    @Test
+    fun testAllExamples() {
+
+    }
+
+    @Test
+    fun benchmark() {
+        val depth = 3
+        println("--------------------------------------------------------------------------------")
+        println("Expanding state space to depth $depth ...")
+        val timeSource = TimeSource.Monotonic
+        val mark1 = timeSource.markNow()
+        val actionStates = StateSpaceGenerator.expand(sampleData[0], depth)
+        val mark2 = timeSource.markNow()
+        println("Expansion finished!")
+        println("Generating ${actionStates.size} states to depth $depth took ${mark2 - mark1}")
+        println("--------------------------------------------------------------------------------")
+    }
+
+    /**
+     * Tests the file with the given name in the examples/ folder, and generates .board and .move
+     * files in the out/ folder. A .board file in the examples/ folder is also needed for comparison.
+     *
+     * @param testname the name of the file, without the .input suffix. The function will look
+     * for the file with the file name of examples/<filename>.input.
+     */
+    private fun testInputFile(testname: String) {
+        println("------------------------------------------------------------")
         // read the file input
-        val text = AbaloneFileIO.readDataFile("examples/Test1.input")
-        val outputMoveFile = "out/Test1.move"
-        val outputBoardFile = "out/Test1.board"
+        val text = AbaloneFileIO.readDataFile("examples/$testname.input")
+        val outputMoveFile = "out/$testname.move"
+        val outputBoardFile = "out/$testname.board"
 
         //parse board from file
         val boardState = AbaloneFileIO.parseState(text[0], text[1])
 
-        println("INITIAL STATE: ")
+        println("INITIAL STATE FOR $testname: ")
         println(boardState.toStringPretty())
 
         // feed board into StateSpaceGenerator
@@ -79,14 +118,13 @@ class StateSpaceGeneratorTest {
         AbaloneFileIO.writeDataFile(outputBoardFile, boardStrings)
 
         val testBoards = AbaloneFileIO.readBoardsString(
-            AbaloneFileIO.readDataFile("examples/Test1.board")
+            AbaloneFileIO.readDataFile("examples/$testname.board")
         )
         println("Test board count: ${testBoards.size}")
         val generatedBoards = AbaloneFileIO.readBoardsString(boardStrings)
         println("Generated board count: ${generatedBoards.size}")
         assertEquals(testBoards.size, generatedBoards.size)
 
-        var testBoardsLeft = testBoards.size
         val testBoardsUsed: HashSet<BoardState> = HashSet()
         for (board in generatedBoards) {
             var boardMatch: BoardState? = null
@@ -113,29 +151,7 @@ class StateSpaceGeneratorTest {
                     " in the reference file.\n${board.toStringPretty()}")
         }
         assertEquals(testBoards.size, testBoardsUsed.size, "Not all test boards were generated.")
-        println("All boards are equal.")
-    }
-
-    /**
-     * Tests the state space generator on the Test2.input and Test2.board files provided for
-     * the project.
-     */
-    @Test
-    fun test2() {
-        TODO("Add test for Test2.input")
-    }
-
-    @Test
-    fun benchmark() {
-        val depth = 3
-        println("--------------------------------------------------------------------------------")
-        println("Expanding state space to depth $depth ...")
-        val timeSource = TimeSource.Monotonic
-        val mark1 = timeSource.markNow()
-        val actionStates = StateSpaceGenerator.expand(sampleData[0], depth)
-        val mark2 = timeSource.markNow()
-        println("Expansion finished!")
-        println("Generating ${actionStates.size} states to depth $depth took ${mark2 - mark1}")
-        println("--------------------------------------------------------------------------------")
+        println("All boards are equal for $testname.")
+        println("------------------------------------------------------------")
     }
 }
