@@ -76,8 +76,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val moveLimit = viewModel.moveLimit
     val durationPerMove = viewModel.moveDuration.value
 
-    val blackGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Black), center = Offset(22.5f,22.5f),radius = 22.5f)
-    val whiteGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Gray), center = Offset(22.5f,22.5f), radius = 22.5f)
+    val blackGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Black), center = Offset(30f,22.5f),radius = 45f)
+    val whiteGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Gray), center = Offset(30f,22.5f), radius = 45f)
 
 
     Row(modifier = Modifier.fillMaxSize()) {
