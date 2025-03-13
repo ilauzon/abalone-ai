@@ -1,5 +1,6 @@
+package com.bcit.abalone.model
+
 import com.bcit.abalone.Piece
-import com.bcit.abalone.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -63,11 +64,6 @@ class StateSpaceGeneratorTest {
     }
 
     @Test
-    fun testAllExamples() {
-
-    }
-
-    @Test
     fun benchmark() {
         val depth = 3
         println("--------------------------------------------------------------------------------")
@@ -87,8 +83,9 @@ class StateSpaceGeneratorTest {
      *
      * @param testname the name of the file, without the .input suffix. The function will look
      * for the file with the file name of examples/<filename>.input.
+     * @param printGenerated true to print all states generated.
      */
-    private fun testInputFile(testname: String) {
+    private fun testInputFile(testname: String, printGenerated: Boolean = false) {
         println("------------------------------------------------------------")
         // read the file input
         val text = AbaloneFileIO.readDataFile("examples/$testname.input")
@@ -107,6 +104,10 @@ class StateSpaceGeneratorTest {
         for (action in actions) {
             val resultState = StateSpaceGenerator.result(boardState, action)
             boards.add(resultState)
+            if (printGenerated) {
+                println(action)
+                println(resultState.toStringPretty())
+            }
         }
 
         // turn actions and boards into strings for file output

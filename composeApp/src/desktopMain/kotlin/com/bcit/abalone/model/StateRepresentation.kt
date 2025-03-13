@@ -273,6 +273,7 @@ class BoardState {
  * @property moveTime the time this player has to move, in milliseconds.
  */
 data class Player(
+    // TODO make score a calculated value dependent on the number of pieces on the board in the StateRepresentation.
     val score: Int,
     val moveTime: Int,
 )
