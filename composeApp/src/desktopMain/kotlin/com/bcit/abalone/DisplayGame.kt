@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -253,6 +254,23 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 .fillMaxHeight()
         ) {
             Text("Previous Moves", modifier = Modifier.padding(15.dp).weight(0.5f).padding(top = 20.dp), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+            var showP1Moves by remember { mutableStateOf(true) }
+            var showP2Moves by remember { mutableStateOf(true) }
+            val onP1Checked:(Boolean)->Unit = {
+                showP1Moves = it
+            }
+            val onP2Checked:(Boolean)->Unit = {
+                showP2Moves = it
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically){
+                Text("Show P1 Moves")
+                Checkbox(showP1Moves, onP1Checked)
+                Text("Show P2 Moves")
+                Checkbox(showP2Moves, onP2Checked)
+            }
+
             Box(modifier = Modifier
                 .padding(5.dp)
                 .background(Color.White)
@@ -264,7 +282,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         Box {
                             LazyColumn {
                                 items(viewModel.moveHistory.size) {
-                                    pathCard(viewModel.moveHistory[it])
+                                    pathCard(viewModel.moveHistory[it], showP1Moves, showP2Moves)
                                 }
                             }
                         }
@@ -345,17 +363,20 @@ private fun formatTime(milliseconds: Long): String {
 }
 
 @Composable
-fun pathCard(moveRecord: AbaloneViewModel.MoveRecord) {
-    Card(
-        border = BorderStroke(width = 1.dp, color = if( moveRecord.previousPlayer == Piece.White ) Color.Red else Color.Blue),
-        modifier = Modifier.fillMaxWidth().padding(all=10.dp)
-    ){
-        Row(horizontalArrangement = Arrangement.SpaceEvenly){
-            Text(
-                text = if (moveRecord.previousPlayer == Piece.White)"P2" else "P1"
-            )
-            Text(text = moveRecord.movePath)
-            Text(text = "${moveRecord.moveDuration / 1000}s")
+fun pathCard(moveRecord: AbaloneViewModel.MoveRecord, showP1Moves: Boolean, showP2Moves: Boolean) {
+    if ((moveRecord.previousPlayer == Piece.Black && showP1Moves) ||
+        (moveRecord.previousPlayer == Piece.White && showP2Moves)) {
+        Card(
+            border = BorderStroke(width = 1.dp, color = if( moveRecord.previousPlayer == Piece.White ) Color.Red else Color.Blue),
+            modifier = Modifier.fillMaxWidth().padding(all=10.dp)
+        ){
+            Row(horizontalArrangement = Arrangement.SpaceEvenly){
+                Text(
+                    text = if (moveRecord.previousPlayer == Piece.White)"P2" else "P1"
+                )
+                Text(text = moveRecord.movePath)
+                Text(text = "${moveRecord.moveDuration / 1000}s")
+            }
         }
     }
 }
