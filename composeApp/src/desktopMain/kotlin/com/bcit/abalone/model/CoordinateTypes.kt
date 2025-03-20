@@ -4,8 +4,8 @@
  */
 package com.bcit.abalone.model
 
-import com.bcit.abalone.Piece
 import java.lang.IllegalArgumentException
+import kotlin.math.*
 
 /**
  * Represents an immutable letter-number pair, signifying a position on the Abalone game board.
@@ -145,6 +145,13 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
             return offBoard
         }
         return newCoordinate
+    }
+
+    fun findDistanceFrom(letter: LetterCoordinate, number: NumberCoordinate): Int {
+        // Calculate the distance between two coordinates
+        val numberDiff = this.number.ordinal - number.ordinal
+        val letterDiff = this.letter.ordinal - letter.ordinal
+        return maxOf(abs(numberDiff), abs(letterDiff)) // Use Chebyshev distance for hex grids
     }
 
     override fun toString(): String = "$letter$number"
