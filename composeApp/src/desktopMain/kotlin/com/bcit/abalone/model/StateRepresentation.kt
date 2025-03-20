@@ -14,7 +14,10 @@ import com.bcit.abalone.model.NumberCoordinate as NumberC
  */
 class StateRepresentation(
     val board: BoardState,
-    val players: Map<Piece, Player>,
+    val players: Map<Piece, Player> = mapOf(
+        Piece.Black to Player(0, 5000),
+        Piece.White to Player(0, 5000),
+    ),
     val movesRemaining: Int,
     val currentPlayer: Piece
 ) {
@@ -66,6 +69,17 @@ class StateRepresentation(
         White (◉): score = ${wh.score}, moves left = ${movesRemaining(Piece.White)}, move time = ${wh.moveTime}
         
         """.trimIndent() + board.toStringPretty()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null) return false
+        if (other !is StateRepresentation) return false
+        return board == other.board
+                && players[Piece.Black] == other.players[Piece.Black]
+                && players[Piece.White] == other.players[Piece.White]
+                && movesRemaining == other.movesRemaining
+                && currentPlayer == other.currentPlayer
+
     }
 }
 
@@ -262,6 +276,16 @@ class BoardState {
         """.trimIndent()
 
         return returnString
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null) return false
+        if (other !is BoardState) return false
+        if (cells.size != other.cells.size) return false
+        for (key in cells.keys) {
+            if (cells[key] != other.cells[key]) return false
+        }
+        return true
     }
 }
 

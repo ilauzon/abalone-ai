@@ -277,4 +277,8 @@ class StateSpaceGenerator {
  * @property coordinates the coordinates of the marbles to move.
  * @property direction the direction to move the marbles in.
  */
-data class Action(val coordinates: Set<Coordinate>, val direction: MoveDirection)
+data class Action(val coordinates: Set<Coordinate>, val direction: MoveDirection) {
+    override fun toString(): String {
+        return "[${coordinates.joinToString(",")}]$direction"
+    }
+}
