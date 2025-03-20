@@ -5,7 +5,7 @@
 3. Run "com.bcit.abalone.exe"
 4. Click the "Go to State Space Generator" button.
 5. Click on the file you want to choose then click the "Enter" button.
-6. The output files wil be generated in the same file as the executable.
+6. The output files wil be generated in the same folder as the executable.
 
 # How to compile the project from source:
 
