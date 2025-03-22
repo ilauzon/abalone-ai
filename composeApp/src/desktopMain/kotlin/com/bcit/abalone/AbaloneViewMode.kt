@@ -10,13 +10,17 @@ import com.bcit.abalone.model.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import com.bcit.abalone.model.StateSpaceGenerator
 import com.bcit.abalone.model.search.CarolHeuristic
 import com.bcit.abalone.model.search.NicoleHeuristic
 import com.bcit.abalone.model.search.StateSearcher
 import kotlinx.coroutines.delay
 
-//  In this class, blue related variable is P1, red related variable is P2
+/**
+ * Change Heuristic, please scroll down to AI move. Or search aiHeuristic1 and aiHeuristic2.
+ * You may also want to change depth. You can find it in AImove1() and AImove2().
+ */
+
+//  In this class, blue related variable is P1(black), red related variable is P2(white)
 class AbaloneViewModel : ViewModel() {
     var selectedLayout by mutableStateOf("Standard")
 
@@ -199,7 +203,7 @@ class AbaloneViewModel : ViewModel() {
      */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
         if (waitForHumanHelp) {
-            println("✅ Human helped the AI. Resuming bot match.")
+            println("Human helped the AI. Resuming bot match.")
             waitForHumanHelp = false
             botGameStarted = true
         }
@@ -367,7 +371,7 @@ class AbaloneViewModel : ViewModel() {
 
             val repetitions = recentCycles.count { it == cycle }
             if (repetitions >= 3) {
-                println("♻️ Repeated move sequence 3 times — waiting for human assistance!")
+                println("!!!!!!Repeated move sequence 3 times — waiting for human assistance!")
                 botGameStarted = false
                 waitForHumanHelp = true
                 return  // Stop the loop before triggering the next bot
@@ -375,7 +379,7 @@ class AbaloneViewModel : ViewModel() {
         }
         println("start to check mode")
 
-        // 🤖 Continue with AI turns if game is not paused or stopped
+        // Continue with AI turns if game is not paused or stopped
         switchPlayerJob?.cancel()
         switchPlayerJob = viewModelScope.launch {
             println("cancel jobs")
@@ -387,14 +391,14 @@ class AbaloneViewModel : ViewModel() {
             if (selectedMode == "Bot Vs. Bot" && !botGameStarted) return@launch
 
             if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) {
-                println("🤖 AI-1 move")
+                println("AI-1 move")
                 AImove1()
             }
 
             if (selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") {
                 println("mode verified")
                 if (currentPlayer.value == Piece.White) {
-                    println("🤖 AI-2 move")
+                    println("AI-2 move")
                     AImove2()
                 }
             }
@@ -419,7 +423,13 @@ class AbaloneViewModel : ViewModel() {
         boardState = mutableStateOf(createBoard(selectedLayout))
     }
 
-    //-------------------------------------------------
+    /**
+     * 1. test your own heuristic, choose human vs. bot, and in AbaloneViewModel file change aiHeuristic2 to your heuristic.
+     * 2. compete with others, choose bot vs. bot mode, and in AbaloneViewModel file change both aiHeuristic1 and aiHeuristic2
+     */
+
+    //----AI move start from here---------------------------------------------
+    // Black side. when choose bot vs. bot mode, need also change this to anther heuristic
     val aiHeuristic1 = CarolHeuristic()
     val searcher1 = StateSearcher(aiHeuristic1)
     fun AImove1() {
@@ -434,7 +444,7 @@ class AbaloneViewModel : ViewModel() {
     }
 
 
-
+    // White side, if choose human vs. bot, only change this to your heuristic.
     val aiHeuristic2 = NicoleHeuristic()
     val searcher2 = StateSearcher(aiHeuristic2)
     fun AImove2() {
