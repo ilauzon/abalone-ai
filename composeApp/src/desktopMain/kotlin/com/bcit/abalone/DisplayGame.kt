@@ -77,8 +77,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val moveLimit = viewModel.moveLimit
     val durationPerMove = viewModel.moveDuration.value
 
-    val blackGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Black), center = Offset(30f,22.5f),radius = 45f)
-    val whiteGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Gray), center = Offset(30f,22.5f), radius = 45f)
+    val blackGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Black), center = Offset(22.5f,10f),radius = 20f)
+    val whiteGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Gray), center = Offset(22.5f,22.5f), radius = 45f)
 
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -91,7 +91,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 .background(Color.LightGray)
                 .fillMaxHeight()
         ) {
-            Text("P1 Score")
+            Text("Black Score")
             Box(
 
             ) {
@@ -117,7 +117,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column{
-                        TableCell("P1")
+                        TableCell("Black")
                         TableCell("$bluePiecesTaken")
                         TableCell("$blueMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(blueTimeRemaining))
@@ -137,7 +137,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column(verticalArrangement = Arrangement.SpaceEvenly){
-                        TableCell("P2")
+                        TableCell("White")
                         TableCell("$redPiecesTaken")
                         TableCell("$redMoveNumber/${moveLimit.toInt()}")
                         TableCell(formatTime(redTimeRemaining))
@@ -153,7 +153,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 }
             }
             Spacer(modifier = Modifier.height(100.dp))
-            Text("P2 Score")
+            Text("White Score")
             Box(
 
             ) {
@@ -174,10 +174,10 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             // Draw game board
             Column (horizontalAlignment = Alignment.CenterHorizontally) {
                 if (currentPlayer == Piece.Black) {
-                    Text("P1", fontSize = 50.sp, fontWeight = FontWeight.Bold, color=Color(0xFF6A25BE))
+                    Text("Black", fontSize = 50.sp, fontWeight = FontWeight.Bold, color=Color(0xFF6A25BE))
                     playerTimer(viewModel.p1TimeLimit, isPaused, viewModel)
                 } else {
-                    Text("P2", fontSize = 50.sp, fontWeight = FontWeight.Bold, color=Color(0xFF6A25BE))
+                    Text("White", fontSize = 50.sp, fontWeight = FontWeight.Bold, color=Color(0xFF6A25BE))
                     playerTimer(viewModel.p2TimeLimit, isPaused, viewModel)
                 }
                 Spacer(modifier = Modifier.height(40.dp))
@@ -200,7 +200,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                                             viewModel.selectMarbles(selectedCells, cell)
                                         }
                                     }
-                                    .border(2.dp, if (isSelected) Color.Green else Color.LightGray, CircleShape)
+                                    .border(2.dp, if (isSelected) Color.Green else if(cell.piece != Piece.Empty) Color.DarkGray else Color.LightGray, CircleShape)
 //                                    .background(
 //                                        when (cell.piece) {
 //                                            Piece.Black -> blackGradient
@@ -221,7 +221,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
 
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("${cell.letter}${cell.number}", fontSize = 20.sp)
+                                Text("${cell.letter}${cell.number}", fontSize = 20.sp,
+                                    color = if(cell.piece == Piece.Black) Color.White else Color.Black)
                             }
                         }
                     }
@@ -265,9 +266,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             }
 
             Row(verticalAlignment = Alignment.CenterVertically){
-                Text("Show P1 Moves")
+                Text("Show Black Moves")
                 Checkbox(showP1Moves, onP1Checked)
-                Text("Show P2 Moves")
+                Text("Show White Moves")
                 Checkbox(showP2Moves, onP2Checked)
             }
 
@@ -299,8 +300,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 val p2Time = viewModel.moveHistory
                     .filter { it.previousPlayer == Piece.White }
                     .sumOf { it.moveDuration }
-                Text("P1 Total time spent   ${p1Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("P2 Total time spent   ${p2Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Black Total time spent   ${p1Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("White Total time spent   ${p2Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

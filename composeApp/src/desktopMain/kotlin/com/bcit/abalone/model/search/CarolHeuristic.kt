@@ -22,11 +22,12 @@ class CarolHeuristic:Heuristic {
     override fun heuristic(state: StateRepresentation): Double {
         val weights = dynamicWeights(state.movesRemaining)
         val current = weightedScore(state, weights)
+        val opponentMovesRemaining = state.movesRemaining - 1
         val opponent = weightedScore(
             StateRepresentation(
                 board = state.board,
                 players = state.players,
-                movesRemaining = state.movesRemaining,
+                movesRemaining = opponentMovesRemaining,
                 currentPlayer = state.currentPlayer.opposite()
             ),
             weights
@@ -140,24 +141,24 @@ class CarolHeuristic:Heuristic {
         return when {
             movesLeft > 30 -> mapOf(  // Early game
                 "pieceCountWeight" to 0.2,  // pieceCountAdvantage is more important in late game
-                "centerDistanceWeight" to 0.4, // centerControl is important in early game, less important later
+                "centerDistanceWeight" to 0.3, // centerControl is important in early game, less important later
                 "edgePenaltyWeight" to 0.1,  // edgePenalty is more important in late game
-                "groupBonusWeight" to 0.15,  // groupBonus is always important, slightly less important later
-                "possiblePushWeight" to 0.15   // possiblePush is important in mid and late game
+                "groupBonusWeight" to 0.2,  // groupBonus is always important, slightly less important later
+                "possiblePushWeight" to 0.2   // possiblePush is important in mid and late game
             )
             movesLeft > 15 -> mapOf(  // Mid game
-                "pieceCountWeight" to 0.3,
+                "pieceCountWeight" to 0.2,
                 "centerDistanceWeight" to 0.2,
                 "edgePenaltyWeight" to 0.15,
                 "groupBonusWeight" to 0.1,
-                "possiblePushWeight" to 0.25
+                "possiblePushWeight" to 0.3
             )
             else -> mapOf(  // Late game
-                "pieceCountWeight" to 0.4,
+                "pieceCountWeight" to 0.3,
                 "centerDistanceWeight" to 0.1,
                 "edgePenaltyWeight" to 0.2,
                 "groupBonusWeight" to 0.1,
-                "possiblePushWeight" to 0.2
+                "possiblePushWeight" to 0.3
             )
         }
     }

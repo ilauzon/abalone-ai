@@ -3,9 +3,17 @@ package com.bcit.abalone
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bcit.abalone.model.AbaloneFileIO.Companion.parseState
+import com.bcit.abalone.model.Action
+import com.bcit.abalone.model.Coordinate
+import com.bcit.abalone.model.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import com.bcit.abalone.model.StateSpaceGenerator
+import com.bcit.abalone.model.search.CarolHeuristic
+import com.bcit.abalone.model.search.NicoleHeuristic
+import com.bcit.abalone.model.search.StateSearcher
 
 //  In this class, blue related variable is P1, red related variable is P2
 class AbaloneViewModel : ViewModel() {
@@ -33,7 +41,7 @@ class AbaloneViewModel : ViewModel() {
     var timerJob: Job? = null
 
 
-    var selectedMode by mutableStateOf("Vs. Human")
+    var selectedMode by mutableStateOf("Vs. Bot")
     var player1Color by mutableStateOf("Black")
     var moveLimit by mutableStateOf(50f)
 
@@ -319,6 +327,7 @@ class AbaloneViewModel : ViewModel() {
         deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
         currentPlayer.value = if (currentPlayer.value == Piece.Black) Piece.White else Piece.Black
         moveStartTime.value = System.currentTimeMillis()
+        AImove()
     }
     fun updateSettings(
         p1Time: Float,
@@ -337,6 +346,85 @@ class AbaloneViewModel : ViewModel() {
         player1Color = p1Color
         moveLimit = moves
         boardState = mutableStateOf(createBoard(selectedLayout))
+    }
+
+    //-------------------------------------------------
+    val aiHeuristic = CarolHeuristic()
+    val searcher = StateSearcher(aiHeuristic)
+    fun AImove() {
+        if (selectedMode != "Vs. Human" && currentPlayer.value == Piece.White){
+            val pair = outputState(boardState.value, currentPlayer.value)
+            val state = parseState(pair.first, pair.second)
+            val bestAction = searcher.search(state, depth = 3)
+            applyAIMove(bestAction)
+        }
+    }
+
+    private fun applyAIMove(action: Action) {
+        val selectedCells = boardState.value.flatten().filter { cell ->
+            val coord = Coordinate.get(
+                LetterCoordinate.valueOf(cell.letter.toString()),
+                NumberCoordinate.entries[cell.number]
+            )
+            coord in action.coordinates
+        }.toMutableList()
+        val targetCell = convertDirectionToTargetCell(action)
+        if (targetCell != null) {
+            moveMarbles(selectedCells, targetCell)
+        }
+    }
+
+    private fun convertDirectionToTargetCell(action:Action): Cell?{
+        val allCoords = action.coordinates
+        if (allCoords.isEmpty()) return null
+
+        // Filter out opponent marbles
+        val myCoords = allCoords.filter {
+            val piece = boardState.value.flatten().find { cell ->
+                it == Coordinate.get(
+                    LetterCoordinate.valueOf(cell.letter.toString()),
+                    NumberCoordinate.entries[cell.number]
+                )
+            }?.piece
+            piece == currentPlayer.value
+        }
+
+        if (myCoords.isEmpty()) return null
+
+        val first = myCoords.first()
+        val last = myCoords.last()
+
+        val isSingle = myCoords.size == 1
+
+        val base: Pair<Char, Int> = if (isSingle) {
+            Pair(first.letter.name.first(), first.number.ordinal)
+        } else {
+            val letterDiff = first.letter.ordinal - last.letter.ordinal
+            val numberDiff = first.number.ordinal - last.number.ordinal
+
+            val from = when (action.direction) {
+                MoveDirection.PosX, MoveDirection.PosY, MoveDirection.PosZ ->
+                    if (letterDiff >= 0 && numberDiff >= 0) first else last
+
+                MoveDirection.NegX, MoveDirection.NegY, MoveDirection.NegZ ->
+                    if (letterDiff >= 0 && numberDiff >= 0) last else first
+            }
+
+            Pair(from.letter.name.first(), from.number.ordinal)
+        }
+
+        val (baseLetter, baseNumber) = base
+
+        val (targetLetter, targetNumber) = when (action.direction) {
+            MoveDirection.PosX -> baseLetter to baseNumber + 1
+            MoveDirection.NegX -> baseLetter to baseNumber - 1
+            MoveDirection.PosY -> (baseLetter + 1) to baseNumber
+            MoveDirection.NegY -> (baseLetter - 1) to baseNumber
+            MoveDirection.PosZ -> (baseLetter + 1) to baseNumber + 1
+            MoveDirection.NegZ -> (baseLetter - 1) to baseNumber - 1
+        }
+
+        return validCell(boardState.value, targetLetter, targetNumber)
     }
 }
 
