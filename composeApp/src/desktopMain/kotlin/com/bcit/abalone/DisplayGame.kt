@@ -95,7 +95,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$bluePiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
+                Text("$redPiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
             }
             Spacer(modifier = Modifier.height(100.dp))
             Row{
@@ -107,7 +107,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                         TableCell("")
                         TableCell("Pieces Taken")
                         TableCell("Move Number")
-                        TableCell("Remaining Time")
+                        //TableCell("Remaining Time")
                         TableCell("Whose Turn")
                     }
                 }
@@ -118,9 +118,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 ) {
                     Column{
                         TableCell("Black")
-                        TableCell("$bluePiecesTaken")
+                        TableCell("$redPiecesTaken")
                         TableCell("$blueMoveNumber/${moveLimit.toInt()}")
-                        TableCell(formatTime(blueTimeRemaining))
+                        //TableCell(formatTime(blueTimeRemaining))
                         if (currentPlayer == Piece.Black) {
                             Box(
                                 modifier = Modifier.background(blackGradient).fillMaxWidth()
@@ -138,9 +138,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 ) {
                     Column(verticalArrangement = Arrangement.SpaceEvenly){
                         TableCell("White")
-                        TableCell("$redPiecesTaken")
+                        TableCell("$bluePiecesTaken")
                         TableCell("$redMoveNumber/${moveLimit.toInt()}")
-                        TableCell(formatTime(redTimeRemaining))
+                        //TableCell(formatTime(redTimeRemaining))
                         if (currentPlayer == Piece.White) {
                             Box(
                                 modifier = Modifier.background(whiteGradient).fillMaxWidth()
@@ -157,7 +157,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$redPiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
+                Text("$bluePiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
             }
 
         }
@@ -373,7 +373,7 @@ fun pathCard(moveRecord: AbaloneViewModel.MoveRecord, showP1Moves: Boolean, show
         ){
             Row(horizontalArrangement = Arrangement.SpaceEvenly){
                 Text(
-                    text = if (moveRecord.previousPlayer == Piece.White)"P2" else "P1"
+                    text = if (moveRecord.previousPlayer == Piece.White)"W" else "B"
                 )
                 Text(text = moveRecord.movePath)
                 Text(text = "${moveRecord.moveDuration / 1000}s")

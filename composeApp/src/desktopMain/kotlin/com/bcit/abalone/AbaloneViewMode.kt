@@ -316,7 +316,7 @@ class AbaloneViewModel : ViewModel() {
     }
 
     private fun updatePiecesTaken() {
-        if (currentPlayer.value == Piece.Black) bluePiecesTaken.value++ else redPiecesTaken.value++
+        if (currentPlayer.value == Piece.Black) redPiecesTaken.value++ else bluePiecesTaken.value++
     }
 
     private fun incrementMoveCount() {
@@ -356,30 +356,24 @@ class AbaloneViewModel : ViewModel() {
             val pair = outputState(boardState.value, currentPlayer.value)
             val state = parseState(pair.first, pair.second)
             val bestAction = searcher.search(state, depth = 3)
+            println("AI chose action: $bestAction")
             applyAIMove(bestAction)
         }
     }
 
     private fun applyAIMove(action: Action) {
-        val selectedCells = boardState.value.flatten().filter { cell ->
-            val coord = Coordinate.get(
-                LetterCoordinate.valueOf(cell.letter.toString()),
-                NumberCoordinate.entries[cell.number]
-            )
-            coord in action.coordinates
-        }.toMutableList()
-        val targetCell = convertDirectionToTargetCell(action)
-        if (targetCell != null) {
-            moveMarbles(selectedCells, targetCell)
+        val (selectedCell, targetCell) = convertDirectionToTargetCell(action)
+        if (selectedCell != null && targetCell != null) {
+            moveMarbles(selectedCell.toMutableList(), targetCell)
         }
     }
 
-    private fun convertDirectionToTargetCell(action:Action): Cell?{
-        val allCoords = action.coordinates
-        if (allCoords.isEmpty()) return null
+    private fun convertDirectionToTargetCell(action:Action):Pair<List<Cell>?, Cell?> {
+        val allCoordinates = action.coordinates
+        if (allCoordinates.isEmpty()) return null to null
 
         // Filter out opponent marbles
-        val myCoords = allCoords.filter {
+        val coords = allCoordinates.filter {
             val piece = boardState.value.flatten().find { cell ->
                 it == Coordinate.get(
                     LetterCoordinate.valueOf(cell.letter.toString()),
@@ -389,42 +383,41 @@ class AbaloneViewModel : ViewModel() {
             piece == currentPlayer.value
         }
 
-        if (myCoords.isEmpty()) return null
+        if (coords.isEmpty()) return null to null
+        val sortedCoordinate = coords.sortedWith(compareBy({it.letter.name.first()}, {it.number.ordinal}))
+        println("sorted selected cell: $sortedCoordinate")
 
-        val first = myCoords.first()
-        val last = myCoords.last()
+        val first = sortedCoordinate.first()
+        val last = sortedCoordinate.last()
 
-        val isSingle = myCoords.size == 1
+        val isSingle = sortedCoordinate.size == 1
 
-        val base: Pair<Char, Int> = if (isSingle) {
-            Pair(first.letter.name.first(), first.number.ordinal)
+        val base: Coordinate = if (isSingle) {
+            first
         } else {
-            val letterDiff = first.letter.ordinal - last.letter.ordinal
-            val numberDiff = first.number.ordinal - last.number.ordinal
-
-            val from = when (action.direction) {
-                MoveDirection.PosX, MoveDirection.PosY, MoveDirection.PosZ ->
-                    if (letterDiff >= 0 && numberDiff >= 0) first else last
-
-                MoveDirection.NegX, MoveDirection.NegY, MoveDirection.NegZ ->
-                    if (letterDiff >= 0 && numberDiff >= 0) last else first
+            when(action.direction) {
+                MoveDirection.PosX,MoveDirection.PosY,MoveDirection.PosZ -> last
+                else -> first
             }
-
-            Pair(from.letter.name.first(), from.number.ordinal)
         }
-
-        val (baseLetter, baseNumber) = base
 
         val (targetLetter, targetNumber) = when (action.direction) {
-            MoveDirection.PosX -> baseLetter to baseNumber + 1
-            MoveDirection.NegX -> baseLetter to baseNumber - 1
-            MoveDirection.PosY -> (baseLetter + 1) to baseNumber
-            MoveDirection.NegY -> (baseLetter - 1) to baseNumber
-            MoveDirection.PosZ -> (baseLetter + 1) to baseNumber + 1
-            MoveDirection.NegZ -> (baseLetter - 1) to baseNumber - 1
+            MoveDirection.PosX -> base.letter to base.number + 1
+            MoveDirection.NegX -> base.letter to base.number - 1
+            MoveDirection.PosY -> base.letter + 1 to base.number
+            MoveDirection.NegY -> base.letter - 1 to base.number
+            MoveDirection.PosZ -> base.letter + 1 to base.number + 1
+            MoveDirection.NegZ -> base.letter - 1 to base.number - 1
         }
+        println("target cell: ${targetLetter.name.first()}, ${targetNumber.ordinal}")
 
-        return validCell(boardState.value, targetLetter, targetNumber)
+        val selectedCells = sortedCoordinate.mapNotNull { coord ->
+            boardState.value.flatten().find { cell ->
+                LetterCoordinate.valueOf(cell.letter.toString()) == coord.letter &&
+                        NumberCoordinate.entries[cell.number] == coord.number
+            }
+        }
+        return selectedCells to validCell(boardState.value, targetLetter.name.first(), targetNumber.ordinal)
     }
 }
 

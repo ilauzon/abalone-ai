@@ -140,25 +140,25 @@ class CarolHeuristic:Heuristic {
     fun dynamicWeights(movesLeft: Int): Map<String, Double> {
         return when {
             movesLeft > 30 -> mapOf(  // Early game
-                "pieceCountWeight" to 0.2,  // pieceCountAdvantage is more important in late game
-                "centerDistanceWeight" to 0.3, // centerControl is important in early game, less important later
-                "edgePenaltyWeight" to 0.1,  // edgePenalty is more important in late game
+                "pieceCountWeight" to 0.1,  // pieceCountAdvantage is more important in late game
+                "centerDistanceWeight" to 0.2, // centerControl is important in early game, less important later
+                "edgePenaltyWeight" to 0.3,  // edgePenalty is more important in late game
                 "groupBonusWeight" to 0.2,  // groupBonus is always important, slightly less important later
                 "possiblePushWeight" to 0.2   // possiblePush is important in mid and late game
             )
             movesLeft > 15 -> mapOf(  // Mid game
                 "pieceCountWeight" to 0.2,
-                "centerDistanceWeight" to 0.2,
-                "edgePenaltyWeight" to 0.15,
+                "centerDistanceWeight" to 0.1,
+                "edgePenaltyWeight" to 0.4,
                 "groupBonusWeight" to 0.1,
                 "possiblePushWeight" to 0.3
             )
             else -> mapOf(  // Late game
-                "pieceCountWeight" to 0.3,
+                "pieceCountWeight" to 0.2,
                 "centerDistanceWeight" to 0.1,
                 "edgePenaltyWeight" to 0.2,
                 "groupBonusWeight" to 0.1,
-                "possiblePushWeight" to 0.3
+                "possiblePushWeight" to 0.4
             )
         }
     }
