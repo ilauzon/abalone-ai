@@ -27,15 +27,15 @@ fun ConfigMenu(viewModel: AbaloneViewModel, onApplySettings: () -> Unit, onGener
     /** The board layout (Standard, Belgian Daisy, German Daisy). */
     var selectedLayout by remember { mutableStateOf("Standard") }
     /** The game mode (vs. Human, vs. Computer). */
-    var selectedMode by remember { mutableStateOf("Vs. Bot") }
+    var selectedMode by remember { mutableStateOf("Bot Vs. Bot") }
     /** The color the user will play as during the game (Black, White). */
     var player1Color by remember { mutableStateOf("Black") }
     /** The move limit of the game. */
     var moveLimit by remember { mutableStateOf(40f) }
     /** The time limit of the game. TODO: allow the user to specify time limit per player.
      * */
-    var p1TimeLimit by remember { mutableStateOf(120f) }
-    var p2TimeLimit by remember { mutableStateOf(60f) }
+    var p1TimeLimit by remember { mutableStateOf(10f) }
+    var p2TimeLimit by remember { mutableStateOf(5f) }
 
     Column(
         modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -163,7 +163,7 @@ private fun ColorSelection(selectedColor: String, onColorSelected: (String) -> U
  */
 @Composable
 private fun ModeSelection(selectedMode: String, onModeSelected: (String) -> Unit) {
-    listOf("Vs. Human", "Vs. Bot").forEach { mode ->
+    listOf("Human Vs. Human", "Human Vs. Bot", "Bot Vs. Bot").forEach { mode ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(selected = (selectedMode == mode), onClick = { onModeSelected(mode) })
             Text(mode, modifier = Modifier.padding(start = 8.dp))

@@ -77,6 +77,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
     val moveLimit = viewModel.moveLimit
     val durationPerMove = viewModel.moveDuration.value
 
+
     val blackGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Black), center = Offset(22.5f,10f),radius = 20f)
     val whiteGradient = Brush.radialGradient(colors = listOf(Color.White, Color.Gray), center = Offset(22.5f,22.5f), radius = 45f)
 
@@ -95,7 +96,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$redPiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
+                Text("$bluePiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
             }
             Spacer(modifier = Modifier.height(100.dp))
             Row{
@@ -157,7 +158,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Box(
 
             ) {
-                Text("$bluePiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
+                Text("$redPiecesTaken", fontSize = 90.sp, color=Color(0xFF6A25BE))
             }
 
         }
@@ -234,11 +235,24 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
             Row (modifier = Modifier.padding(10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)){
 
-                Button(onClick = { viewModel.resetGame() }, modifier = Modifier.padding(1.dp)) {
-                    Text("Start / Reset")
+                Button(onClick = {
+                    if (viewModel.selectedMode == "Bot Vs. Bot") {
+                        if (!viewModel.botGameStarted) {
+                            viewModel.startGame()
+                        } else {
+                            viewModel.resetGame()
+                        }
+                    } else {
+                        viewModel.resetGame()
+                    }
+                }, modifier = Modifier.padding(1.dp)) {
+                    Text(when {
+                        viewModel.selectedMode == "Bot Vs. Bot" && !viewModel.botGameStarted -> "Start"
+                        else -> "Reset"
+                    })
                 }
                 Button(onClick = { viewModel.pauseOrResumeGame() }, modifier = Modifier.padding(1.dp)) {
-                    Text( if(isPaused.value) "Resume" else "Pause / Resume")
+                    Text( if(isPaused.value) "Resume" else " Pause")
                 }
                 Button(onClick = {viewModel.undoLastMove() }, modifier = Modifier.padding(1.dp)) {
                     Text("Undo")

@@ -14,6 +14,7 @@ import com.bcit.abalone.model.StateSpaceGenerator
 import com.bcit.abalone.model.search.CarolHeuristic
 import com.bcit.abalone.model.search.NicoleHeuristic
 import com.bcit.abalone.model.search.StateSearcher
+import kotlinx.coroutines.delay
 
 //  In this class, blue related variable is P1, red related variable is P2
 class AbaloneViewModel : ViewModel() {
@@ -41,13 +42,23 @@ class AbaloneViewModel : ViewModel() {
     var timerJob: Job? = null
 
 
-    var selectedMode by mutableStateOf("Vs. Bot")
+    var selectedMode by mutableStateOf("Bot Vs. Bot")
     var player1Color by mutableStateOf("Black")
-    var moveLimit by mutableStateOf(50f)
+    var moveLimit by mutableStateOf(40f)
 
     var pausedTimeRemaining = 0L
     var deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
     val moveHistory = mutableStateListOf<MoveRecord>()
+
+    var botGameStarted by mutableStateOf(false)
+    var switchPlayerJob: Job? = null
+    var waitForHumanHelp by mutableStateOf(false)
+
+
+    data class BoardCycle(val blackState: BoardState, val whiteState: BoardState)
+    private val recentCycles = mutableListOf<BoardCycle>()
+    private var lastBlackBoard: BoardState? = null
+    private var lastWhiteBoard: BoardState? = null
 
 
     fun resetGame() {
@@ -68,6 +79,8 @@ class AbaloneViewModel : ViewModel() {
         println("p2TimeLimit after reset: $p2TimeLimit")
         timerJob?.cancel()
         moveHistory.clear()
+        botGameStarted = false
+        switchPlayerJob?.cancel()
 //        println(boardState)
     }
 
@@ -185,6 +198,12 @@ class AbaloneViewModel : ViewModel() {
         pieces to empty cell and push opponent piece.
      */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
+        if (waitForHumanHelp) {
+            println("✅ Human helped the AI. Resuming bot match.")
+            waitForHumanHelp = false
+            botGameStarted = true
+        }
+
         if (selectedCells.isEmpty()) {
             return
         }
@@ -324,10 +343,62 @@ class AbaloneViewModel : ViewModel() {
     }
 
     fun switchPlayer() {
+        println("Switch")
         deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
         currentPlayer.value = if (currentPlayer.value == Piece.Black) Piece.White else Piece.Black
         moveStartTime.value = System.currentTimeMillis()
-        AImove()
+        val currentBoard = BoardState(
+            boardState.value.flatten().associateBy {
+                Coordinate.get(
+                    LetterCoordinate.valueOf(it.letter.toString()),
+                    NumberCoordinate.entries[it.number]
+                )
+            }.mapValues { it.value.piece }
+        )
+
+        if (currentPlayer.value == Piece.White) {
+            lastBlackBoard = currentBoard
+        } else if (currentPlayer.value == Piece.Black && lastBlackBoard != null) {
+            lastWhiteBoard = currentBoard
+            val cycle = BoardCycle(lastBlackBoard!!, lastWhiteBoard!!)
+
+            if (recentCycles.size >= 5) recentCycles.removeFirst()
+            recentCycles.add(cycle)
+
+            val repetitions = recentCycles.count { it == cycle }
+            if (repetitions >= 3) {
+                println("♻️ Repeated move sequence 3 times — waiting for human assistance!")
+                botGameStarted = false
+                waitForHumanHelp = true
+                return  // Stop the loop before triggering the next bot
+            }
+        }
+        println("start to check mode")
+
+        // 🤖 Continue with AI turns if game is not paused or stopped
+        switchPlayerJob?.cancel()
+        switchPlayerJob = viewModelScope.launch {
+            println("cancel jobs")
+            println("mode:$selectedMode")
+            delay(300)
+            if (isPaused.value) return@launch
+
+            // Only require botGameStarted for Bot vs. Bot mode
+            if (selectedMode == "Bot Vs. Bot" && !botGameStarted) return@launch
+
+            if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) {
+                println("🤖 AI-1 move")
+                AImove1()
+            }
+
+            if (selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") {
+                println("mode verified")
+                if (currentPlayer.value == Piece.White) {
+                    println("🤖 AI-2 move")
+                    AImove2()
+                }
+            }
+        }
     }
     fun updateSettings(
         p1Time: Float,
@@ -349,75 +420,110 @@ class AbaloneViewModel : ViewModel() {
     }
 
     //-------------------------------------------------
-    val aiHeuristic = CarolHeuristic()
-    val searcher = StateSearcher(aiHeuristic)
-    fun AImove() {
-        if (selectedMode != "Vs. Human" && currentPlayer.value == Piece.White){
+    val aiHeuristic1 = CarolHeuristic()
+    val searcher1 = StateSearcher(aiHeuristic1)
+    fun AImove1() {
+        if (isPaused.value || !botGameStarted || waitForHumanHelp) return
+        if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black){
             val pair = outputState(boardState.value, currentPlayer.value)
             val state = parseState(pair.first, pair.second)
-            val bestAction = searcher.search(state, depth = 3)
-            println("AI chose action: $bestAction")
+            val bestAction = searcher1.search(state, depth = 3)
+            println("AI-1 chose action: $bestAction")
+            applyAIMove(bestAction)
+        }
+    }
+
+
+
+    val aiHeuristic2 = NicoleHeuristic()
+    val searcher2 = StateSearcher(aiHeuristic2)
+    fun AImove2() {
+        println("In search")
+        if (isPaused.value || waitForHumanHelp) return
+        if ((selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") && currentPlayer.value == Piece.White){
+            val pair = outputState(boardState.value, currentPlayer.value)
+            val state = parseState(pair.first, pair.second)
+            val bestAction = searcher2.search(state, depth = 3)
+            println("AI-2 chose action: $bestAction")
             applyAIMove(bestAction)
         }
     }
 
     private fun applyAIMove(action: Action) {
-        val (selectedCell, targetCell) = convertDirectionToTargetCell(action)
-        if (selectedCell != null && targetCell != null) {
-            moveMarbles(selectedCell.toMutableList(), targetCell)
+        val (cells, target) = convertDirectionToTargetCell(action)
+        if (cells != null && target != null) {
+            println("target: $target")
+            moveMarbles(cells.toMutableList(), target)
+
+            // Allow UI to reflect move
+            viewModelScope.launch {
+                delay(400)
+            }
         }
     }
 
-    private fun convertDirectionToTargetCell(action:Action):Pair<List<Cell>?, Cell?> {
+    fun convertDirectionToTargetCell(action:Action):Pair<List<Cell>?, Cell?> {
+        val board = boardState.value.flatten()
         val allCoordinates = action.coordinates
         if (allCoordinates.isEmpty()) return null to null
 
-        // Filter out opponent marbles
-        val coords = allCoordinates.filter {
-            val piece = boardState.value.flatten().find { cell ->
-                it == Coordinate.get(
-                    LetterCoordinate.valueOf(cell.letter.toString()),
-                    NumberCoordinate.entries[cell.number]
-                )
-            }?.piece
-            piece == currentPlayer.value
-        }
-
-        if (coords.isEmpty()) return null to null
-        val sortedCoordinate = coords.sortedWith(compareBy({it.letter.name.first()}, {it.number.ordinal}))
-        println("sorted selected cell: $sortedCoordinate")
-
-        val first = sortedCoordinate.first()
-        val last = sortedCoordinate.last()
-
-        val isSingle = sortedCoordinate.size == 1
-
-        val base: Coordinate = if (isSingle) {
-            first
-        } else {
-            when(action.direction) {
-                MoveDirection.PosX,MoveDirection.PosY,MoveDirection.PosZ -> last
-                else -> first
-            }
-        }
-
-        val (targetLetter, targetNumber) = when (action.direction) {
-            MoveDirection.PosX -> base.letter to base.number + 1
-            MoveDirection.NegX -> base.letter to base.number - 1
-            MoveDirection.PosY -> base.letter + 1 to base.number
-            MoveDirection.NegY -> base.letter - 1 to base.number
-            MoveDirection.PosZ -> base.letter + 1 to base.number + 1
-            MoveDirection.NegZ -> base.letter - 1 to base.number - 1
-        }
-        println("target cell: ${targetLetter.name.first()}, ${targetNumber.ordinal}")
-
-        val selectedCells = sortedCoordinate.mapNotNull { coord ->
-            boardState.value.flatten().find { cell ->
+        val selectedCells = allCoordinates.mapNotNull { coord ->
+            board.find { cell ->
                 LetterCoordinate.valueOf(cell.letter.toString()) == coord.letter &&
-                        NumberCoordinate.entries[cell.number] == coord.number
+                        NumberCoordinate.entries[cell.number] == coord.number &&
+                        cell.piece == currentPlayer.value
             }
+        }.sortedWith(compareBy({ it.letter }, { it.number }))
+
+        if (selectedCells.isEmpty()) return null to null
+
+        println("sorted selected cell: $selectedCells")
+
+        val first = selectedCells.first()
+        val last = selectedCells.last()
+        val (diffLetter, diffNumber) = when (action.direction) {
+            MoveDirection.PosX -> 0 to 1
+            MoveDirection.NegX -> 0 to -1
+            MoveDirection.PosY -> 1 to 0
+            MoveDirection.NegY -> -1 to 0
+            MoveDirection.PosZ -> 1 to 1
+            MoveDirection.NegZ -> -1 to -1
         }
-        return selectedCells to validCell(boardState.value, targetLetter.name.first(), targetNumber.ordinal)
+
+        val target: Cell? = when (selectedCells.size) {
+            1 -> {
+                val possible = oneMarbleMovePossibilities(first, boardState.value)
+                board.find { it.letter == first.letter + diffLetter && it.number == first.number + diffNumber }
+                    ?.takeIf { it in possible }
+            }
+            in 2..3 -> {
+                val possible = twoOrThreeMarbleMovePossibilities(selectedCells.toMutableList(), boardState.value)
+                val firstTarget = board.find { it.letter == first.letter + diffLetter && it.number == first.number + diffNumber }
+                val lastTarget = board.find { it.letter == last.letter + diffLetter && it.number == last.number + diffNumber }
+                when {
+                    firstTarget in possible -> firstTarget
+                    lastTarget in possible -> lastTarget
+                    else -> null
+                }
+            }
+            else -> null
+        }
+
+        return selectedCells to target
+
     }
+
+    fun startGame(){
+        if (selectedMode == "Bot Vs. Bot"){
+            botGameStarted = true
+            val showOnBoard = boardState.value.flatten()
+            val selectedCell = showOnBoard.filter {
+                (it.letter == 'I' && it.number == 7) || (it.letter == 'H' && it.number == 7) || (it.letter == 'G' && it.number == 7)
+            }.toMutableList()
+            val targetCell = showOnBoard.find { it.letter == 'F' && it.number == 7 } ?: return
+            moveMarbles(selectedCell, targetCell)
+        }
+    }
+
 }
 

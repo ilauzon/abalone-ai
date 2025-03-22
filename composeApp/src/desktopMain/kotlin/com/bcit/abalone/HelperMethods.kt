@@ -1,8 +1,10 @@
 package com.bcit.abalone
 
 import com.bcit.abalone.model.Action
+import com.bcit.abalone.model.Coordinate
 import com.bcit.abalone.model.MoveDirection
-import org.jetbrains.skiko.currentNanoTime
+import com.bcit.abalone.model.NumberCoordinate
+import com.bcit.abalone.model.LetterCoordinate
 
 fun isCellNeighbor(currentCell: Cell, targetCell: Cell): Boolean {
     val letterDiff = currentCell.letter - targetCell.letter
@@ -105,32 +107,5 @@ fun outputState(board: List<List<Cell>>, currentPlayer: Piece): Pair<String,Stri
         .joinToString(",") { "${it.letter}${it.number}${it.piece.name.first().lowercase()}" }
     val player = if (currentPlayer == Piece.Black) "b" else "w"
     return player to positions
-}
-
-fun getTargetCellFromAction(action: Action, board: List<List<Cell>>): Cell? {
-    // Determine move direction offsets
-    val (dLetter, dNumber) = when (action.direction) {
-        MoveDirection.PosX -> 0 to 1
-        MoveDirection.NegX -> 0 to -1
-        MoveDirection.PosY -> -1 to 0
-        MoveDirection.NegY -> 1 to 0
-        MoveDirection.PosZ -> -1 to -1
-        MoveDirection.NegZ -> 1 to 1
-    }
-
-    // Find the front-most marble based on direction
-    val frontMarble = action.coordinates.maxByOrNull { coord ->
-        val score = coord.letter.ordinal * 10 + coord.number.ordinal
-        when (action.direction) {
-            MoveDirection.PosX, MoveDirection.PosY, MoveDirection.PosZ -> -score
-            else -> score
-        }
-    } ?: return null
-
-    val targetLetterChar = frontMarble.letter.toString().first()
-    val targetNumberInt = frontMarble.number.ordinal + dNumber
-    val targetLetter = (targetLetterChar.code + dLetter).toChar()
-
-    return board.flatten().find { it.letter == targetLetter && it.number == targetNumberInt }
 }
 
