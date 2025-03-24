@@ -15,8 +15,9 @@ import kotlin.math.sign
  */
 class IsaacHeuristic: Heuristic {
 
-    private val closenessWeight = 1
-    private val adjacencyWeight = 1
+    private val closenessWeight = 0.4
+    private val adjacencyWeight = 0.4
+    private val pieceWeight = 0.2
 
     /**
      * Based on the ABLA agent, described in
@@ -32,7 +33,8 @@ class IsaacHeuristic: Heuristic {
     override fun heuristic(state: StateRepresentation): Double {
         val closeness = closenessToCentre(state.board) * closenessWeight
         val adjacency = adjacency(state.board) * adjacencyWeight
-        val sum = closeness + adjacency + isWin(state.board)
+        val pieces = pieceAdvantage(state.board) * pieceWeight
+        val sum = closeness + adjacency + pieces + isWin(state.board)
         return sum
     }
 
