@@ -440,7 +440,7 @@ class AbaloneViewModel : ViewModel() {
     // Black side. when choose bot vs. bot mode, need also change this to anther heuristic
     val aiHeuristic1 = CarolHeuristic()
     val searcher1 = StateSearcher(aiHeuristic1)
-    fun AImove1() {
+    fun AImove1(firstMove: Boolean = false) {
         val start = System.currentTimeMillis()
         if (isPaused.value || !botGameStarted || waitForHumanHelp) return
         if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black){
@@ -450,7 +450,7 @@ class AbaloneViewModel : ViewModel() {
             val state = parseState(pair.first, pair.second)
             val parse = System.currentTimeMillis()
             println("AI-1 took ${parse - output}ms parse")
-            val bestAction = searcher1.search(state, depth = 3)
+            val bestAction = searcher1.search(state, depth = 3, firstMove)
             println("AI-1 chose action: $bestAction")
             val mid = System.currentTimeMillis()
             println("AI-1 took ${mid - parse}ms search")
@@ -567,7 +567,7 @@ class AbaloneViewModel : ViewModel() {
     fun startGame(){
         if (selectedMode == "Bot Vs. Bot") {
             botGameStarted = true
-            AImove1()
+            AImove1(true)
         }
     }
 
