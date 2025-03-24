@@ -350,7 +350,14 @@ class AbaloneViewModel : ViewModel() {
         println("Switch")
         deepCopiedBoard = boardState.value.map { row -> row.map { it.copy() } }
         currentPlayer.value = if (currentPlayer.value == Piece.Black) Piece.White else Piece.Black
-        moveStartTime.value = System.currentTimeMillis()
+        // Only start timer immediately if a human is going next
+        if ((selectedMode == "Human Vs. Human") ||
+            (selectedMode == "Human Vs. Bot" && currentPlayer.value == Piece.Black && player1Color == "Black") ||
+            (selectedMode == "Human Vs. Bot" && currentPlayer.value == Piece.White && player1Color == "White")
+        ) {
+            moveStartTime.value = System.currentTimeMillis()
+        }
+        // solution for repeated moves
         val currentBoard = BoardState(
             boardState.value.flatten().associateBy {
                 Coordinate.get(
@@ -389,6 +396,7 @@ class AbaloneViewModel : ViewModel() {
 
             // Only require botGameStarted for Bot vs. Bot mode
             if (selectedMode == "Bot Vs. Bot" && !botGameStarted) return@launch
+            moveStartTime.value = System.currentTimeMillis()
 
             if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) {
                 println("AI-1 move")
@@ -433,13 +441,22 @@ class AbaloneViewModel : ViewModel() {
     val aiHeuristic1 = CarolHeuristic()
     val searcher1 = StateSearcher(aiHeuristic1)
     fun AImove1() {
+        val start = System.currentTimeMillis()
         if (isPaused.value || !botGameStarted || waitForHumanHelp) return
         if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black){
             val pair = outputState(boardState.value, currentPlayer.value)
+            val output = System.currentTimeMillis()
+            println("AI-1 took ${output - start}ms output")
             val state = parseState(pair.first, pair.second)
+            val parse = System.currentTimeMillis()
+            println("AI-1 took ${parse - output}ms parse")
             val bestAction = searcher1.search(state, depth = 3)
             println("AI-1 chose action: $bestAction")
+            val mid = System.currentTimeMillis()
+            println("AI-1 took ${mid - parse}ms search")
             applyAIMove(bestAction)
+            val end = System.currentTimeMillis()
+            println("AI-1 took ${end - mid}ms move")
         }
     }
 
@@ -449,13 +466,25 @@ class AbaloneViewModel : ViewModel() {
     val searcher2 = StateSearcher(aiHeuristic2)
     fun AImove2() {
         println("In search")
+        val start = System.currentTimeMillis()
         if (isPaused.value || waitForHumanHelp) return
         if ((selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") && currentPlayer.value == Piece.White){
             val pair = outputState(boardState.value, currentPlayer.value)
+            val output = System.currentTimeMillis()
+            println("AI-2 took ${output - start}ms output")
+
             val state = parseState(pair.first, pair.second)
+            val parse = System.currentTimeMillis()
+            println("AI-2 took ${parse - output}ms parse")
+
             val bestAction = searcher2.search(state, depth = 3)
+
+            val mid = System.currentTimeMillis()
+            println("AI-2 took ${mid - parse}ms search")
             println("AI-2 chose action: $bestAction")
             applyAIMove(bestAction)
+            val end = System.currentTimeMillis()
+            println("AI-2 took ${end - mid}ms move")
         }
     }
 
@@ -523,15 +552,22 @@ class AbaloneViewModel : ViewModel() {
 
     }
 
+//    fun startGame(){
+//        if (selectedMode == "Bot Vs. Bot"){
+//            botGameStarted = true
+//            val showOnBoard = boardState.value.flatten()
+//            val selectedCell = showOnBoard.filter {
+//                (it.letter == 'I' && it.number == 7) || (it.letter == 'H' && it.number == 7) || (it.letter == 'G' && it.number == 7)
+//            }.toMutableList()
+//            val targetCell = showOnBoard.find { it.letter == 'F' && it.number == 7 } ?: return
+//            moveMarbles(selectedCell, targetCell)
+//        }
+//    }
+
     fun startGame(){
-        if (selectedMode == "Bot Vs. Bot"){
+        if (selectedMode == "Bot Vs. Bot") {
             botGameStarted = true
-            val showOnBoard = boardState.value.flatten()
-            val selectedCell = showOnBoard.filter {
-                (it.letter == 'I' && it.number == 7) || (it.letter == 'H' && it.number == 7) || (it.letter == 'G' && it.number == 7)
-            }.toMutableList()
-            val targetCell = showOnBoard.find { it.letter == 'F' && it.number == 7 } ?: return
-            moveMarbles(selectedCell, targetCell)
+            AImove1()
         }
     }
 
