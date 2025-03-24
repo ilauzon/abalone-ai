@@ -212,7 +212,7 @@ class StateSpaceGenerator {
                val newCoordinate = coordinate.move(action.direction)
                newBoard[newCoordinate] = oldBoard[coordinate]
            }
-
+           newBoard[Coordinate.offBoard] = Piece.OffBoard
 
            if (scoreAdded > 1) {
                throw IllegalArgumentException("The given action and state result in more than one" +

@@ -1,6 +1,5 @@
 package com.bcit.abalone.model.search
 
-import androidx.compose.animation.core.animateValueAsState
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.Action
 import com.bcit.abalone.model.StateRepresentation
@@ -23,9 +22,10 @@ class StateSearcher(private val heuristic: Heuristic) {
      *
      * @param state the current state, which the returned action is acting on.
      * @param depth the depth to search to.
+     * @param firstMove if this is the first move of the agent.
      * @return the "best" action to take from that state.
      */
-    fun search(state: StateRepresentation, depth: Int): Action {
+    fun search(state: StateRepresentation, depth: Int, firstMove: Boolean = false): Action {
         if (depth < 1) {
             throw IllegalArgumentException("depth must be 1 or more for search to occur.")
         } else if (terminalTest(state)) {
@@ -37,7 +37,13 @@ class StateSearcher(private val heuristic: Heuristic) {
 
         // Black is Max because they move first.
         if (currentPlayer == Piece.Black) {
-            bestState = maxValue(state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second!!
+            if (firstMove) {
+                val states = expand(state, 1)
+                println("RANDOM FIRST MOVE")
+                bestState = states.random().second
+            } else {
+                bestState = maxValue(state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second!!
+            }
         } else {
             bestState = minValue(state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second!!
         }
