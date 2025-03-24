@@ -43,6 +43,6 @@ class NicoleHeuristic:Heuristic {
 
         // Return the difference between player's score and opponent's score weighted with the number
         // of pieces
-        return 0.8 * (playerScore - opponentScore) + 0.2 * (playerPieces - opponentPieces)
+        return (playerScore - opponentScore) + 10 * (playerPieces - opponentPieces)
     }
 }
