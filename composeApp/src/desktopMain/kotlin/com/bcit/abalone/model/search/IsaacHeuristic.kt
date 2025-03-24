@@ -15,18 +15,16 @@ import kotlin.math.sign
  */
 class IsaacHeuristic: Heuristic {
 
-    private val closenessWeight = 1.5
+    private val closenessWeight = 1
     private val adjacencyWeight = 1
-    private val piecesWeight = 8
 
     /**
      * Based on the ABLA agent, described in
-     *
      * "A Simple Intelligent Agent for Playing Abalone Game: ABLA" by
      * Ender Ozcan and Berk Hulagu, on pp 6-7.
      *
-     * This heuristic function evaluates two features: closeness to the
-     * board centre and grouped-togetherness.
+     * This heuristic function evaluates three features: closeness to the
+     * board centre, how grouped the pieces are, and the number of pieces taken.
      *
      * @param state the state being evaluated.
      * @return a value when higher is best for Max, and when lower is best for Min.
@@ -34,12 +32,12 @@ class IsaacHeuristic: Heuristic {
     override fun heuristic(state: StateRepresentation): Double {
         val closeness = closenessToCentre(state.board) * closenessWeight
         val adjacency = adjacency(state.board) * adjacencyWeight
-        val pieces = pieceAdvantage(state) * piecesWeight
-        println("Closeness: $closeness   \tAdjacency: $adjacency   \tPieces: $pieces")
-        return (closeness + adjacency + pieces).toDouble()
+        val sum = closeness + adjacency + isWin(state.board)
+        return sum
     }
 
     companion object {
+        private const val OFFBOARD_DISTANCE = 10
         /**
          * Computes how close the pieces are to the centre of the board, E5.
          * This algorithm uses the sum of the Manhattan distances of the marbles
@@ -53,14 +51,17 @@ class IsaacHeuristic: Heuristic {
          * @return the sum of white's distance to the centre, minus the sum of black's
          * distance to the centre.
          */
-        fun closenessToCentre(board: BoardState): Int {
+        fun closenessToCentre(board: BoardState): Double {
             val blackMarbles = board.cells.filter { it.value == Piece.Black }
             val whiteMarbles = board.cells.filter { it.value == Piece.White }
 
-            val blackSum = blackMarbles.keys.sumOf { dist(it, Coordinate.get(L.E, N.FIVE)) }
-            val whiteSum = whiteMarbles.keys.sumOf { dist(it, Coordinate.get(L.E, N.FIVE)) }
+            var blackSum = blackMarbles.keys.sumOf { dist(it, Coordinate.get(L.E, N.FIVE)) }
+            var whiteSum = whiteMarbles.keys.sumOf { dist(it, Coordinate.get(L.E, N.FIVE)) }
 
-            return whiteSum - blackSum
+            blackSum += OFFBOARD_DISTANCE * (14 - blackMarbles.count())
+            whiteSum += OFFBOARD_DISTANCE * (14 - whiteMarbles.count())
+
+            return (whiteSum - blackSum).toDouble()
         }
 
         /**
@@ -119,8 +120,25 @@ class IsaacHeuristic: Heuristic {
         /**
          * @return the difference of black pieces to white pieces.
          */
-        fun pieceAdvantage(state: StateRepresentation): Int {
-            return state.players[Piece.Black]!!.score - state.players[Piece.White]!!.score
+        fun pieceAdvantage(board: BoardState): Int {
+            var blackCount = 0
+            var whiteCount = 0
+            for (piece in board.cells) {
+                if (piece.value == Piece.Black) blackCount++
+                else if (piece.value == Piece.White) whiteCount++
+            }
+            val difference = blackCount - whiteCount
+            return difference
+        }
+
+        /**
+         * Returns negative infinity if White wins, and positive infinity if
+         * Black wins. Returns 0 if neither win.
+         */
+        fun isWin(board: BoardState): Double {
+            if (pieceAdvantage(board) >= 6) return Double.POSITIVE_INFINITY
+            else if (pieceAdvantage(board) <= -6) return Double.NEGATIVE_INFINITY
+            else return 0.0
         }
     }
 }
