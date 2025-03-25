@@ -567,6 +567,7 @@ class AbaloneViewModel : ViewModel() {
     fun startGame(){
         if (selectedMode == "Bot Vs. Bot") {
             botGameStarted = true
+            moveStartTime.value = System.currentTimeMillis()
             AImove1(true)
         }
     }

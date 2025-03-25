@@ -314,8 +314,8 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 val p2Time = viewModel.moveHistory
                     .filter { it.previousPlayer == Piece.White }
                     .sumOf { it.moveDuration }
-                Text("Black Total time spent   ${p1Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("White Total time spent   ${p2Time / 1000}s", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Black Total time spent   ${p1Time}ms", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("White Total time spent   ${p2Time}ms", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -390,7 +390,7 @@ fun pathCard(moveRecord: AbaloneViewModel.MoveRecord, showP1Moves: Boolean, show
                     text = if (moveRecord.previousPlayer == Piece.White)"W" else "B"
                 )
                 Text(text = moveRecord.movePath)
-                Text(text = "${moveRecord.moveDuration / 1000}s")
+                Text(text = "${moveRecord.moveDuration}ms")
             }
         }
     }
