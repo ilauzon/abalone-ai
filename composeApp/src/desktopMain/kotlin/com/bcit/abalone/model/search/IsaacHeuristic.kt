@@ -8,6 +8,7 @@ import com.bcit.abalone.model.NumberCoordinate as N
 import com.bcit.abalone.model.StateRepresentation
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sign
 
 /**
@@ -15,31 +16,31 @@ import kotlin.math.sign
  */
 class IsaacHeuristic: Heuristic {
 
-    private val closenessWeight = 0.4
-    private val adjacencyWeight = 0.4
-    private val pieceWeight = 0.2
-
     /**
      * Based on the ABLA agent, described in
      * "A Simple Intelligent Agent for Playing Abalone Game: ABLA" by
      * Ender Ozcan and Berk Hulagu, on pp 6-7.
      *
-     * This heuristic function evaluates three features: closeness to the
-     * board centre, how grouped the pieces are, and the number of pieces taken.
+     * This heuristic function evaluates two features: closeness to the
+     * board centre, and how grouped the pieces are.
      *
      * @param state the state being evaluated.
      * @return a value when higher is best for Max, and when lower is best for Min.
      */
     override fun heuristic(state: StateRepresentation): Double {
-        val closeness = closenessToCentre(state.board) * closenessWeight
-        val adjacency = adjacency(state.board) * adjacencyWeight
-        val pieces = pieceAdvantage(state.board) * pieceWeight
-        val sum = closeness + adjacency + pieces + isWin(state.board)
+        val closeness = closenessToCentre(state.board) * CLOSENESS_WEIGHT
+        val adjacency = adjacency(state.board) * ADJACENCY_WEIGHT
+//        val moves = state.movesRemaining * MOVES_WEIGHT
+        val sum = closeness + adjacency
         return sum
     }
 
     companion object {
-        private const val OFFBOARD_DISTANCE = 10
+        private const val CLOSENESS_WEIGHT = 0.5
+        private const val ADJACENCY_WEIGHT = 0.5
+        private const val MOVES_WEIGHT = 2
+        private const val OFFBOARD_DISTANCE = 20
+
         /**
          * Computes how close the pieces are to the centre of the board, E5.
          * This algorithm uses the sum of the Manhattan distances of the marbles
@@ -70,18 +71,21 @@ class IsaacHeuristic: Heuristic {
          * Computes the number of moves to move a marble from one coordinate to another,
          * i.e. the Manhattan distance.
          *
+         * The solution for the Manhattan distance in a hexagonal grid was taken from
+         * this article by redblobgames.com:
+         * [Hexagonal Grids](https://www.redblobgames.com/grids/hexagons/#distances-axial)
+         *
          * @param c1 coordinate 1.
          * @param c2 coordinate 2.
          * @return the number of moves from c1 to c2.
          */
         fun dist(c1: Coordinate, c2: Coordinate): Int {
-            val xDist = c1.number.ordinal - c2.number.ordinal
-            val yDist = c1.letter.ordinal - c2.letter.ordinal
+            val r1 = -c1.letter.ordinal
+            val q1 = c1.number.ordinal
+            val r2 = -c2.letter.ordinal
+            val q2 = c2.number.ordinal
 
-            return if (xDist.sign == yDist.sign)
-                abs(xDist - yDist) + max(abs(xDist), abs(yDist))
-            else
-                max(abs(xDist), abs(yDist))
+            return (abs(q1 - q2) + abs(q1 + r1 - q2 - r2) + abs(r1 - r2)) / 2
         }
 
         /**
@@ -120,27 +124,34 @@ class IsaacHeuristic: Heuristic {
         }
 
         /**
-         * @return the difference of black pieces to white pieces.
+         * Returns a large negative number if White wins, and a large positive number if
+         * Black wins. Returns 0 if neither win.
+         *
+         * Win value is weighted depending on the number of moves left, as well as the number
+         * of pieces left if the given state is a terminal state.
          */
-        fun pieceAdvantage(board: BoardState): Int {
+        private fun winValue(state: StateRepresentation): Double {
+            val winWeight = 1_000_000.0
             var blackCount = 0
             var whiteCount = 0
-            for (piece in board.cells) {
+            for (piece in state.board.cells) {
                 if (piece.value == Piece.Black) blackCount++
                 else if (piece.value == Piece.White) whiteCount++
             }
-            val difference = blackCount - whiteCount
-            return difference
-        }
 
-        /**
-         * Returns negative infinity if White wins, and positive infinity if
-         * Black wins. Returns 0 if neither win.
-         */
-        fun isWin(board: BoardState): Double {
-            if (pieceAdvantage(board) >= 6) return Double.POSITIVE_INFINITY
-            else if (pieceAdvantage(board) <= -6) return Double.NEGATIVE_INFINITY
-            else return 0.0
+            val whitePiecesLeft = 14 - whiteCount
+            val blackPiecesLeft = 14 - blackCount
+            val blackWin = whitePiecesLeft >= 6
+            val whiteWin = blackPiecesLeft >= 6
+            return if (blackWin) {
+                winWeight * (state.movesRemaining + 1) * (blackPiecesLeft - whitePiecesLeft)
+            } else if (whiteWin) {
+                -winWeight * (state.movesRemaining + 1) * (whitePiecesLeft - blackPiecesLeft)
+            } else if (state.movesRemaining == 0) {
+                if (blackCount > whiteCount) winWeight
+                else if (whiteCount > blackCount) -winWeight
+                else 0.0
+            } else 0.0
         }
     }
 }

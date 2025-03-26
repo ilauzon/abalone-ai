@@ -18,23 +18,41 @@ class IsaacHeuristicTest {
     @Test
     fun testDist() {
         val tests = listOf(
-            Coordinate.get(L.A, N.ONE) to Coordinate.get(L.G, N.SEVEN),
-            Coordinate.get(L.B, N.ONE) to Coordinate.get(L.G, N.SEVEN),
-            Coordinate.get(L.C, N.ONE) to Coordinate.get(L.G, N.SEVEN),
-            Coordinate.get(L.G, N.SEVEN) to Coordinate.get(L.A, N.ONE),
-            Coordinate.get(L.G, N.SEVEN) to Coordinate.get(L.B, N.ONE),
-            Coordinate.get(L.G, N.SEVEN) to Coordinate.get(L.C, N.ONE),
-
-            Coordinate.get(L.E, N.ONE) to Coordinate.get(L.E, N.NINE),
+            Coordinate.get(L.I, N.NINE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.I, N.EIGHT) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.I, N.SEVEN) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.I, N.SIX) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.I, N.FIVE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.H, N.FOUR) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.G, N.THREE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.F, N.TWO) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.E, N.ONE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.D, N.ONE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.C, N.ONE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.B, N.ONE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.A, N.ONE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.A, N.TWO) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.A, N.THREE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.A, N.FOUR) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.A, N.FIVE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.B, N.SIX) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.C, N.SEVEN) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.D, N.EIGHT) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.E, N.NINE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.F, N.NINE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.G, N.NINE) to Coordinate.get(L.E, N.FIVE),
+            Coordinate.get(L.H, N.NINE) to Coordinate.get(L.E, N.FIVE),
         )
 
         for ((c1, c2) in tests) {
-            runDistTest(c1, c2)
+            assertEquals(runDistTest(c1, c2), 4)
         }
     }
 
-    private fun runDistTest(c1: Coordinate, c2: Coordinate) {
-        println(c1.toString() + " -> " + c2.toString() + " " + IsaacHeuristic.dist(c1, c2))
+    private fun runDistTest(c1: Coordinate, c2: Coordinate): Int {
+        val dist = IsaacHeuristic.dist(c1, c2)
+        println("$c1 -> $c2 $dist")
+        return dist
     }
 
     @Test
