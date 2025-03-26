@@ -42,10 +42,10 @@ class StateSearcher(private val heuristic: Heuristic) {
                 println("RANDOM FIRST MOVE")
                 bestState = states.random().second
             } else {
-                bestState = maxValue(state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second!!
+                bestState = value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second
             }
         } else {
-            bestState = minValue(state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second!!
+            bestState = value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second
         }
 
         val actionStates = expand(state, 1)
@@ -64,48 +64,40 @@ class StateSearcher(private val heuristic: Heuristic) {
             || state.movesRemaining <= 0
     }
 
-    private fun maxValue(state: StateRepresentation, a: Double, b: Double, depth: Int): Pair<Double, StateRepresentation?> {
+    /**
+     * Combined Min-Value and Max-Value functions, controlled by the isMax flag.
+     *
+     * @param isMax true if the calculation is Max-Value().
+     * @param state the state being examined.
+     * @param a alpha.
+     * @param b beta.
+     * @param depth the depth to search to.
+     * @return the estimated utility of the given state.
+     */
+    private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int): Pair<Double, StateRepresentation> {
         if (depth <= 0 || terminalTest(state)) {
-            return eval(state) to null
+            return eval(state) to state
         }
 
-        var v = Double.NEGATIVE_INFINITY
+        var v = if (isMax) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
         var bestResult: StateRepresentation? = null
         var alpha = a
         var beta = b
         for (action in actions(state)) {
             val result = result(state, action)
-            val newV = minValue(result, alpha, beta, depth - 1).first
-            if (newV > v) {
+            val newV = value(!isMax, result, alpha, beta, depth - 1).first
+            if (isMax && newV > v || !isMax && newV < v) {
                 v = newV
                 bestResult = result
             }
-            if (v > beta) return v to bestResult
-            alpha = max(alpha, v)
-        }
-        return v to bestResult
-    }
-
-    private fun minValue(state: StateRepresentation, a: Double, b: Double, depth: Int): Pair<Double, StateRepresentation?> {
-        if (depth <= 0 || terminalTest(state)) {
-            return eval(state) to null
-        }
-
-        var v = Double.POSITIVE_INFINITY
-        var bestResult: StateRepresentation? = null
-        var alpha = a
-        var beta = b
-        for (action in actions(state)) {
-            val result = result(state, action)
-            val newV = maxValue(result, alpha, beta, depth - 1).first
-            if (newV < v) {
-                v = newV
-                bestResult = result
+            if (isMax && v > beta || !isMax && v < alpha) return v to bestResult!!
+            if (isMax) {
+                alpha = max(alpha, v)
+            } else {
+                beta = min(alpha, v)
             }
-            if (v < alpha) return v to bestResult
-            beta = min(alpha, v)
         }
-        return v to bestResult
+        return v to bestResult!!
     }
 
     /**
