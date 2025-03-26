@@ -62,6 +62,7 @@ class AbaloneViewModel : ViewModel() {
 
 
     data class BoardCycle(val blackState: BoardState, val whiteState: BoardState)
+
     private val recentCycles = mutableListOf<BoardCycle>()
     private var lastBlackBoard: BoardState? = null
     private var lastWhiteBoard: BoardState? = null
@@ -96,15 +97,19 @@ class AbaloneViewModel : ViewModel() {
         if (isPaused.value) {
             // Resume the game
             moveStartTime.value = currentTime
-            if(currentPlayer.value == Piece.Black) {
+            if (currentPlayer.value == Piece.Black) {
                 blueTimeRemaining.value = pausedTimeRemaining
             } else {
                 redTimeRemaining.value = pausedTimeRemaining
             }
+            if (selectedMode == "Bot Vs. Bot" && !waitForHumanHelp) {
+                botGameStarted = true
+                switchPlayer() // This will pick up AI turn again
+            }
 
         } else {
             // Pause the game
-            pausedTimeRemaining = if(currentPlayer.value == Piece.Black) {
+            pausedTimeRemaining = if (currentPlayer.value == Piece.Black) {
                 blueTimeRemaining.value - (currentTime - moveStartTime.value)
             } else {
                 redTimeRemaining.value - (currentTime - moveStartTime.value)
@@ -155,7 +160,7 @@ class AbaloneViewModel : ViewModel() {
             blueMoveNumber.value = lastMove.blueMoveNumber
             redMoveNumber.value = lastMove.redMoveNumber
             bluePiecesTaken.value = lastMove.bluePiecesTaken
-            redPiecesTaken.value =lastMove.redPiecesTaken
+            redPiecesTaken.value = lastMove.redPiecesTaken
             blueTimeRemaining.value = lastMove.blueTimeRemaining
             redTimeRemaining.value = lastMove.redTimeRemaining
 
@@ -163,15 +168,15 @@ class AbaloneViewModel : ViewModel() {
     }
 
     /** this is for selecting marbles, including choose one or two or three.
-        when choosing the second one, it will check if it is a neighbor cell. if not, it will clear the list.
-        when choosing the third one, it will check if the third one is on the line and the three cells are in order. if not, it will clear the list.
+    when choosing the second one, it will check if it is a neighbor cell. if not, it will clear the list.
+    when choosing the third one, it will check if the third one is on the line and the three cells are in order. if not, it will clear the list.
      */
     fun selectMarbles(selectedCells: MutableList<Cell>, cell: Cell) {
         if (cell.piece != currentPlayer.value) {
             return
-        }
-        else if(isPaused.value) {return}
-        else {
+        } else if (isPaused.value) {
+            return
+        } else {
             when (selectedCells.size) {
                 0 -> selectedCells.add(cell)
                 1 -> handleSelection(
@@ -191,7 +196,11 @@ class AbaloneViewModel : ViewModel() {
         }
     }
 
-    private fun handleSelection(selectedCells: MutableList<Cell>, cell: Cell, validation: (MutableList<Cell>, Cell) -> Boolean) {
+    private fun handleSelection(
+        selectedCells: MutableList<Cell>,
+        cell: Cell,
+        validation: (MutableList<Cell>, Cell) -> Boolean
+    ) {
         if (validation(selectedCells, cell) && cell.piece == currentPlayer.value) {
             selectedCells.add(cell)
         } else {
@@ -201,7 +210,7 @@ class AbaloneViewModel : ViewModel() {
     }
 
     /**  Move marbles method includes move one piece to empty cell; and two or three
-        pieces to empty cell and push opponent piece.
+    pieces to empty cell and push opponent piece.
      */
     fun moveMarbles(selectedCells: MutableList<Cell>, targetCell: Cell) {
         if (waitForHumanHelp) {
@@ -214,6 +223,7 @@ class AbaloneViewModel : ViewModel() {
             return
         }
 
+
         moveDuration.value = System.currentTimeMillis() - moveStartTime.value
         if (currentPlayer.value == Piece.Black) {
             blueTimeRemaining.value -= moveDuration.value
@@ -222,12 +232,16 @@ class AbaloneViewModel : ViewModel() {
         }
 
 
-        val (letterDiff, numberDiff, moveOrder) = determineMoveDirection(selectedCells, targetCell) ?: return
+        val (letterDiff, numberDiff, moveOrder) = determineMoveDirection(
+            selectedCells,
+            targetCell
+        ) ?: return
 
         if (targetCell.piece == Piece.Empty) {
             if (selectedCells.size == 1 && isCellNeighbor(selectedCells[0], targetCell)) {
                 val movedPiece = selectedCells[0].piece
-                val startPos = "${selectedCells[0].letter}${selectedCells[0].number}${movedPiece.name[0]}"
+                val startPos =
+                    "${selectedCells[0].letter}${selectedCells[0].number}${movedPiece.name[0]}"
                 val endPos = "${targetCell.letter}${targetCell.number}${movedPiece.name[0]}"
                 targetCell.piece = movedPiece
                 selectedCells[0].piece = Piece.Empty
@@ -237,18 +251,25 @@ class AbaloneViewModel : ViewModel() {
                 selectedCells.clear()
                 switchPlayer()
             } else if (selectedCells.size in 2..3) {
-                val possibleMoveList = twoOrThreeMarbleMovePossibilities(selectedCells, boardState.value)
+                val possibleMoveList =
+                    twoOrThreeMarbleMovePossibilities(selectedCells, boardState.value)
                 if (targetCell !in possibleMoveList) return
                 performMove(moveOrder, letterDiff, numberDiff)
             }
         } else if (targetCell.piece != currentPlayer.value) {
             handlePushMove(selectedCells, targetCell, letterDiff, numberDiff, moveOrder)
+
         }
     }
 
     // This helper method check if the target cell is a neighbor cell of the first selected cell or the last selected cell.
-    private fun determineMoveDirection(selectedCells: MutableList<Cell>, targetCell: Cell): Triple<Int, Int, List<Cell>>? {
-        if (selectedCells.isEmpty()) { return null }
+    private fun determineMoveDirection(
+        selectedCells: MutableList<Cell>,
+        targetCell: Cell
+    ): Triple<Int, Int, List<Cell>>? {
+        if (selectedCells.isEmpty()) {
+            return null
+        }
         val letterDiff: Int
         val numberDiff: Int
         val moveOrder: List<Cell>
@@ -292,8 +313,10 @@ class AbaloneViewModel : ViewModel() {
             newCell.piece = movingPieces.find { it.first == oldCell }?.second ?: Piece.Empty
         }
 
-        val endPositions = newPositions.map { "${it.second.letter}${it.second.number}${it.second.piece.name[0]}" }
-        val movePath = "[${startPositions.joinToString(", ")}] -> [${endPositions.joinToString(", ")}]"
+        val endPositions =
+            newPositions.map { "${it.second.letter}${it.second.number}${it.second.piece.name[0]}" }
+        val movePath =
+            "[${startPositions.joinToString(", ")}] -> [${endPositions.joinToString(", ")}]"
 
         saveGameState(movePath, moveDuration.value)
         incrementMoveCount()
@@ -302,9 +325,17 @@ class AbaloneViewModel : ViewModel() {
     }
 
     // this method handles pushing opponent piece.
-    private fun handlePushMove(selectedCells: MutableList<Cell>, targetCell: Cell, letterDiff: Int, numberDiff: Int, moveOrder: List<Cell>) {
-        val nextCell = boardState.value.flatten().find { it.letter == targetCell.letter + letterDiff && it.number == targetCell.number + numberDiff }
-        val nextnextCell = boardState.value.flatten().find { it.letter == targetCell.letter + 2 * letterDiff && it.number == targetCell.number + 2 * numberDiff }
+    private fun handlePushMove(
+        selectedCells: MutableList<Cell>,
+        targetCell: Cell,
+        letterDiff: Int,
+        numberDiff: Int,
+        moveOrder: List<Cell>
+    ) {
+        val nextCell = boardState.value.flatten()
+            .find { it.letter == targetCell.letter + letterDiff && it.number == targetCell.number + numberDiff }
+        val nextnextCell = boardState.value.flatten()
+            .find { it.letter == targetCell.letter + 2 * letterDiff && it.number == targetCell.number + 2 * numberDiff }
 
         if (selectedCells.size == 2) {
             if (nextCell == null) {
@@ -414,6 +445,7 @@ class AbaloneViewModel : ViewModel() {
             }
         }
     }
+
     fun updateSettings(
         p1Time: Float,
         p2Time: Float,
@@ -421,7 +453,7 @@ class AbaloneViewModel : ViewModel() {
         mode: String,
         p1Color: String,
         moves: Float
-    ){
+    ) {
         p1TimeLimit = p1Time
         p1MaxTimePerTurn = p1Time
         p2TimeLimit = p2Time
@@ -445,7 +477,7 @@ class AbaloneViewModel : ViewModel() {
     fun AImove1(firstMove: Boolean = false) {
         val start = System.currentTimeMillis()
         if (isPaused.value || !botGameStarted || waitForHumanHelp) return
-        if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black){
+        if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) {
             val pair = outputState(boardState.value, currentPlayer.value)
             val output = System.currentTimeMillis()
             println("AI-1 took ${output - start}ms output")
@@ -470,7 +502,7 @@ class AbaloneViewModel : ViewModel() {
         println("In search")
         val start = System.currentTimeMillis()
         if (isPaused.value || waitForHumanHelp) return
-        if ((selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") && currentPlayer.value == Piece.White){
+        if ((selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") && currentPlayer.value == Piece.White) {
             val pair = outputState(boardState.value, currentPlayer.value)
             val output = System.currentTimeMillis()
             println("AI-2 took ${output - start}ms output")
@@ -503,7 +535,7 @@ class AbaloneViewModel : ViewModel() {
         }
     }
 
-    fun convertDirectionToTargetCell(action:Action):Pair<List<Cell>?, Cell?> {
+    fun convertDirectionToTargetCell(action: Action): Pair<List<Cell>?, Cell?> {
         val board = boardState.value.flatten()
         val allCoordinates = action.coordinates
         if (allCoordinates.isEmpty()) return null to null
@@ -537,16 +569,23 @@ class AbaloneViewModel : ViewModel() {
                 board.find { it.letter == first.letter + diffLetter && it.number == first.number + diffNumber }
                     ?.takeIf { it in possible }
             }
+
             in 2..3 -> {
-                val possible = twoOrThreeMarbleMovePossibilities(selectedCells.toMutableList(), boardState.value)
-                val firstTarget = board.find { it.letter == first.letter + diffLetter && it.number == first.number + diffNumber }
-                val lastTarget = board.find { it.letter == last.letter + diffLetter && it.number == last.number + diffNumber }
+                val possible = twoOrThreeMarbleMovePossibilities(
+                    selectedCells.toMutableList(),
+                    boardState.value
+                )
+                val firstTarget =
+                    board.find { it.letter == first.letter + diffLetter && it.number == first.number + diffNumber }
+                val lastTarget =
+                    board.find { it.letter == last.letter + diffLetter && it.number == last.number + diffNumber }
                 when {
                     firstTarget in possible -> firstTarget
                     lastTarget in possible -> lastTarget
                     else -> null
                 }
             }
+
             else -> null
         }
 
@@ -566,7 +605,7 @@ class AbaloneViewModel : ViewModel() {
 //        }
 //    }
 
-    fun startGame(){
+    fun startGame() {
         if (selectedMode == "Bot Vs. Bot") {
             botGameStarted = true
             moveStartTime.value = System.currentTimeMillis()
