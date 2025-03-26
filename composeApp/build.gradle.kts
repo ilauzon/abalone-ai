@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.13"
 }
 
 kotlin {
@@ -20,6 +21,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.13")
         }
 
         val desktopMain by getting
