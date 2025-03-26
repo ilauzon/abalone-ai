@@ -7,10 +7,12 @@ import com.bcit.abalone.model.AbaloneFileIO.Companion.parseState
 import com.bcit.abalone.model.Action
 import com.bcit.abalone.model.Coordinate
 import com.bcit.abalone.model.*
+import com.bcit.abalone.model.search.CalvinHeuristic
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import com.bcit.abalone.model.search.CarolHeuristic
+import com.bcit.abalone.model.search.IsaacHeuristic
 import com.bcit.abalone.model.search.NicoleHeuristic
 import com.bcit.abalone.model.search.StateSearcher
 import kotlinx.coroutines.delay
@@ -462,7 +464,7 @@ class AbaloneViewModel : ViewModel() {
 
 
     // White side, if choose human vs. bot, only change this to your heuristic.
-    val aiHeuristic2 = NicoleHeuristic()
+    val aiHeuristic2 = CalvinHeuristic()
     val searcher2 = StateSearcher(aiHeuristic2)
     fun AImove2() {
         println("In search")
