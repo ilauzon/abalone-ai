@@ -385,8 +385,9 @@ class AbaloneViewModel : ViewModel() {
         currentPlayer.value = if (currentPlayer.value == Piece.Black) Piece.White else Piece.Black
         // Only start timer immediately if a human is going next
         if ((selectedMode == "Human Vs. Human") ||
-            (selectedMode == "Human Vs. Bot" && currentPlayer.value == Piece.Black && player1Color == "Black") ||
-            (selectedMode == "Human Vs. Bot" && currentPlayer.value == Piece.White && player1Color == "White")
+            (selectedMode == "Human Vs. Bot" && currentPlayer.value == Piece.Black) ||
+            (selectedMode == "Bot Vs. Human" && currentPlayer.value == Piece.White)
+
         ) {
             moveStartTime.value = System.currentTimeMillis()
         }
@@ -431,7 +432,9 @@ class AbaloneViewModel : ViewModel() {
             if (selectedMode == "Bot Vs. Bot" && !botGameStarted) return@launch
             moveStartTime.value = System.currentTimeMillis()
 
-            if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) {
+            if ((selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) ||
+                (selectedMode == "Bot Vs. Human" && currentPlayer.value == Piece.Black))
+                {
                 println("AI-1 move")
                 AImove1()
             }
@@ -474,10 +477,14 @@ class AbaloneViewModel : ViewModel() {
     // Black side. when choose bot vs. bot mode, need also change this to anther heuristic
     val aiHeuristic1 = CarolHeuristic()
     val searcher1 = StateSearcher(aiHeuristic1)
+
     fun AImove1(firstMove: Boolean = false) {
+        println("mode: $selectedMode")
         val start = System.currentTimeMillis()
         if (isPaused.value || !botGameStarted || waitForHumanHelp) return
-        if (selectedMode == "Bot Vs. Bot" && currentPlayer.value == Piece.Black) {
+        if ((selectedMode == "Bot Vs. Bot"&& currentPlayer.value == Piece.Black) ||
+            (selectedMode == "Bot Vs. Human" && currentPlayer.value == Piece.Black)) {
+
             val pair = outputState(boardState.value, currentPlayer.value)
             val output = System.currentTimeMillis()
             println("AI-1 took ${output - start}ms output")
@@ -606,7 +613,7 @@ class AbaloneViewModel : ViewModel() {
 //    }
 
     fun startGame() {
-        if (selectedMode == "Bot Vs. Bot") {
+        if (selectedMode == "Bot Vs. Bot" || selectedMode == "Bot Vs. Human") {
             botGameStarted = true
             moveStartTime.value = System.currentTimeMillis()
             AImove1(true)

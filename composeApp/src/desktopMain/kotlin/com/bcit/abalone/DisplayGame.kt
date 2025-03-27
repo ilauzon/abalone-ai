@@ -236,7 +236,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(10.dp)){
 
                 Button(onClick = {
-                    if (viewModel.selectedMode == "Bot Vs. Bot") {
+                    if (viewModel.selectedMode == "Bot Vs. Bot" || viewModel.selectedMode == "Bot Vs. Human") {
                         if (!viewModel.botGameStarted) {
                             viewModel.startGame()
                         } else {
@@ -247,7 +247,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     }
                 }, modifier = Modifier.padding(1.dp)) {
                     Text(when {
-                        viewModel.selectedMode == "Bot Vs. Bot" && !viewModel.botGameStarted -> "Start"
+                        viewModel.selectedMode == "Bot Vs. Bot" ||  viewModel.selectedMode == "Bot Vs. Human" && !viewModel.botGameStarted -> "Start"
                         else -> "Reset"
                     })
                 }
