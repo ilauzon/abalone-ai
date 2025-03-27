@@ -619,6 +619,5 @@ class AbaloneViewModel : ViewModel() {
             AImove1(true)
         }
     }
-
 }
 

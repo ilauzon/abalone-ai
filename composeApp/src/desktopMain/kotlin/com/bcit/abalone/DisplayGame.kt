@@ -252,7 +252,7 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     })
                 }
                 Button(onClick = { viewModel.pauseOrResumeGame() }, modifier = Modifier.padding(1.dp)) {
-                    Text( if(isPaused.value) "Resume" else " Pause")
+                    Text(if(viewModel.isPaused.value)"Resume" else "Pause" )
                 }
                 Button(onClick = {viewModel.undoLastMove() }, modifier = Modifier.padding(1.dp)) {
                     Text("Undo")
@@ -385,11 +385,13 @@ fun pathCard(moveRecord: AbaloneViewModel.MoveRecord, showP1Moves: Boolean, show
             border = BorderStroke(width = 1.dp, color = if( moveRecord.previousPlayer == Piece.White ) Color.Red else Color.Blue),
             modifier = Modifier.fillMaxWidth().padding(all=10.dp)
         ){
-            Row(horizontalArrangement = Arrangement.SpaceEvenly){
+            Column(verticalArrangement = Arrangement.Center){
                 Text(
                     text = if (moveRecord.previousPlayer == Piece.White)"W" else "B"
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(text = moveRecord.movePath)
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(text = "${moveRecord.moveDuration}ms")
             }
         }
