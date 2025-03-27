@@ -71,7 +71,7 @@ class IsaacHeuristicTest {
 
         testCase = StateSpaceGenerator.result(testCase, action)
 
-        val closeness = IsaacHeuristic.closenessToCentre(testCase.board)
+        val closeness = IsaacHeuristic.closenessToCentre(testCase.board, testCase)
         println(testCase.toStringPretty())
         println("Closeness: $closeness")
     }

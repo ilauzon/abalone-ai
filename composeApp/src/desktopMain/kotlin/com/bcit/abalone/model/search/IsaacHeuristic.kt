@@ -21,7 +21,7 @@ class IsaacHeuristic: Heuristic {
      * @return a value when higher is best for Max, and when lower is best for Min.
      */
     override fun heuristic(state: StateRepresentation): Double {
-        val closeness = closenessToCentre(state.board) * CLOSENESS_WEIGHT
+        val closeness = closenessToCentre(state.board, state) * CLOSENESS_WEIGHT
         val adjacency = adjacency(state.board) * ADJACENCY_WEIGHT
         val sum = closeness + adjacency
         return sum
@@ -45,7 +45,7 @@ class IsaacHeuristic: Heuristic {
          * @return the sum of white's distance to the centre, minus the sum of black's
          * distance to the centre.
          */
-        fun closenessToCentre(board: BoardState): Double {
+        fun closenessToCentre(board: BoardState, state: StateRepresentation): Double {
             var blackSum = 0
             var whiteSum = 0
             var blackMarbleCount = 0
@@ -65,8 +65,13 @@ class IsaacHeuristic: Heuristic {
             blackSum += OFFBOARD_DISTANCE * (14 - blackMarbleCount)
             whiteSum += OFFBOARD_DISTANCE * (14 - whiteMarbleCount)
 
-            return (whiteSum - blackSum).toDouble()
+            return if (state.currentPlayer == Piece.White) {
+                (whiteSum - blackSum).toDouble()
+            } else {
+                (blackSum - whiteSum).toDouble()
+            }
         }
+
 
         /**
          * Computes the number of moves to move a marble from one coordinate to another,
