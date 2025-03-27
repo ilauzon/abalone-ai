@@ -2,8 +2,6 @@ package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.*
-import com.bcit.abalone.model.LetterCoordinate as L
-import com.bcit.abalone.model.NumberCoordinate as N
 import kotlin.math.abs
 
 /**
@@ -52,8 +50,9 @@ class IsaacHeuristic: Heuristic {
             var whiteSum = 0
             var blackMarbleCount = 0
             var whiteMarbleCount = 0
-            val middle = Coordinate.get(L.E, N.FIVE)
-            for ((marble, piece) in board.cells) {
+            val middle = BoardMap.middle
+            for (marble in board.cells.keys) {
+                val piece = board.cells[marble]
                 if (piece == Piece.Black) {
                     blackMarbleCount++
                     blackSum += dist(marble, middle)
@@ -101,7 +100,8 @@ class IsaacHeuristic: Heuristic {
         fun adjacency(board: BoardState): Int {
             var blackAdjacent = 0
             var whiteAdjacent = 0
-            for ((marble, piece) in board.cells) {
+            for (marble in board.cells.keys) {
+                val piece = board.cells[marble]
                 if (piece == Piece.Black || piece == Piece.White) {
                     val directionsToCheck = listOf(
                         marble.move(MoveDirection.NegZ),

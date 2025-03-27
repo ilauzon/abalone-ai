@@ -190,7 +190,7 @@ class StateSpaceGenerator {
 
            // clone the board
            val oldBoard = state.board.cells
-           val newBoard = HashMap(oldBoard)
+           val newBoard = oldBoard.clone()
            var scoreAdded = 0
 
            val mappedCoordinates: List<Pair<Coordinate, Coordinate>> = action.coordinates.map {

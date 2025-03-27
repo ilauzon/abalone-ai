@@ -86,15 +86,20 @@ class StateRepresentation(
 /**
  * Represents the state of the game board.
  */
-class BoardState() {
+class BoardState {
 
     /**
      * The game board. The value of a particular cell in accessed via a map, with the coordinates
      * as the key.
      */
-    val cells: BoardMap = BoardMap()
+    val cells: BoardMap
 
-    constructor(layout: Layout): this() {
+    constructor() {
+       cells = BoardMap()
+    }
+
+    constructor(layout: Layout) {
+        cells = BoardMap()
         when (layout) {
             Layout.STANDARD -> setBoard(generateStandardLayout())
             Layout.BELGIAN_DAISY -> setBoard(generateBelgianDaisyLayout())
@@ -108,8 +113,13 @@ class BoardState() {
         GERMAN_DAISY,
     }
 
-    constructor(board: Map<Coordinate, Piece>): this() {
+    constructor(board: Map<Coordinate, Piece>) {
+        cells = BoardMap()
         setBoard(board)
+    }
+
+    constructor(boardMap: BoardMap) {
+        cells = boardMap
     }
 
     companion object {
