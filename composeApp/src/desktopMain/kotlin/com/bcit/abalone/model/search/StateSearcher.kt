@@ -83,6 +83,14 @@ class StateSearcher(private val heuristic: Heuristic) {
         var bestResult: StateRepresentation? = null
         var alpha = a
         var beta = b
+//        val states = actions(state).map { result(state, it) to eval(state) }
+//        val sortedStates: List<Pair<StateRepresentation, Double>>
+//        if (isMax) {
+//            sortedStates = states.sortedByDescending { it.second }
+//        } else {
+//            sortedStates = states.sortedBy { it.second }
+//        }
+//        for ((result, _) in sortedStates) {
         for (action in actions(state)) {
             val result = result(state, action)
             val newV = value(!isMax, result, alpha, beta, depth - 1).first

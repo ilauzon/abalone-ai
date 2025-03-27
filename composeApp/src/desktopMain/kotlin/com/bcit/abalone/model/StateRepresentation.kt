@@ -86,23 +86,15 @@ class StateRepresentation(
 /**
  * Represents the state of the game board.
  */
-class BoardState {
+class BoardState() {
 
     /**
      * The game board. The value of a particular cell in accessed via a map, with the coordinates
      * as the key.
      */
-    val cells: HashMap<Coordinate, Piece> = HashMap()
+    val cells: BoardMap = BoardMap()
 
-    init {
-        fillBoardWithEmpty(cells)
-    }
-
-    constructor() {
-        fillBoardWithEmpty(cells)
-    }
-
-    constructor(layout: Layout) {
+    constructor(layout: Layout): this() {
         when (layout) {
             Layout.STANDARD -> setBoard(generateStandardLayout())
             Layout.BELGIAN_DAISY -> setBoard(generateBelgianDaisyLayout())
@@ -116,13 +108,13 @@ class BoardState {
         GERMAN_DAISY,
     }
 
-    constructor(board: Map<Coordinate, Piece>) {
+    constructor(board: Map<Coordinate, Piece>): this() {
         setBoard(board)
     }
 
     companion object {
-        fun fillBoardWithEmpty(
-            board: HashMap<Coordinate, Piece>
+        private fun fillBoardWithEmpty(
+            board: MutableMap<Coordinate, Piece>
         ) {
             for (l: LetterC in LetterC.entries.drop(1)) {
                 for (n: NumberC in NumberC.entries.slice(l.min.ordinal..l.max.ordinal)) {
@@ -133,7 +125,7 @@ class BoardState {
         }
 
         private fun fillBoardLetter(
-            board: HashMap<Coordinate, Piece>,
+            board: MutableMap<Coordinate, Piece>,
             letter: LetterC,
             piece: Piece,
             range: Iterable<NumberC>
@@ -207,7 +199,7 @@ class BoardState {
                 prefix = "[",
                 postfix = "]",
                 transform = {
-                    val piece = cells[Coordinate.get(letter, it)]!!
+                    val piece = cells[Coordinate.get(letter, it)]
                     when (piece) {
                         Piece.Empty -> "0"
                         Piece.Black -> "1"
@@ -251,7 +243,7 @@ class BoardState {
                 prefix = prefix,
                 postfix = postfix,
                 transform = {
-                    val piece = cells[Coordinate.get(letter, it)]!!
+                    val piece = cells[Coordinate.get(letter, it)]
                     when (piece) {
                         Piece.Empty -> "∙"
                         Piece.Black -> "◯"
@@ -281,11 +273,14 @@ class BoardState {
     override fun equals(other: Any?): Boolean {
         if (other == null) return false
         if (other !is BoardState) return false
-        if (cells.size != other.cells.size) return false
         for (key in cells.keys) {
             if (cells[key] != other.cells[key]) return false
         }
         return true
+    }
+
+    override fun hashCode(): Int {
+        return cells.hashCode()
     }
 }
 
