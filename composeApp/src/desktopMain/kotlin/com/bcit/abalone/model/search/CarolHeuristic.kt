@@ -1,6 +1,7 @@
 package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
+import com.bcit.abalone.model.BoardState
 import com.bcit.abalone.model.Coordinate
 import com.bcit.abalone.model.LetterCoordinate
 import com.bcit.abalone.model.NumberCoordinate
@@ -19,100 +20,96 @@ import com.bcit.abalone.model.StateRepresentation
 class CarolHeuristic : Heuristic {
 
     private val boardCenter = Coordinate.get(LetterCoordinate.E, NumberCoordinate.FIVE)
+    private val centerSum = boardCenter.letter.ordinal + boardCenter.number.ordinal
 
     override fun heuristic(state: StateRepresentation): Double {
         val weights = dynamicWeights(state.movesRemaining)
-        val currentScore = weightedScore(state, weights)
 
-        val opponentState = StateRepresentation(
-            board = state.board,
-            players = state.players,
-            movesRemaining = state.movesRemaining - 1,
-            currentPlayer = state.currentPlayer.opposite()
+        val currentScore = weightedScore(state, weights)
+        val opponentScore = weightedScore(
+            StateRepresentation(
+                board = state.board,
+                players = state.players,
+                movesRemaining = state.movesRemaining - 1,
+                currentPlayer = state.currentPlayer.opposite()
+            ),
+            weights
         )
-        val opponentScore = weightedScore(opponentState, weights)
 
         return currentScore - opponentScore
     }
 
     private fun weightedScore(state: StateRepresentation, weights: Map<String, Double>): Double {
-        val maxDistFromCenter = maxDistanceFromCenter(state)
-        return (
-                weights["pieceCountWeight"]!! * dynamicPieceDifference(state) +
-                        weights["centerDistanceWeight"]!! * centerDistance(state, maxDistFromCenter) +
-                        weights["edgePenaltyWeight"]!! * edgePenalty(state)
-                )
+        val maxDistFromCenter = maxCenterDistance(state.board)
+        return weights["pieceCountWeight"]!! * pieceDifference(state.board, state.currentPlayer) +
+                weights["centerDistanceWeight"]!! * centerControl(state.board, state.currentPlayer, maxDistFromCenter) +
+                weights["edgePenaltyWeight"]!! * edgePenalty(state.board)
     }
 
-    private fun dynamicPieceDifference(state: StateRepresentation): Double {
-        val blackCaptured = state.players[Piece.Black]!!.score
-        val whiteCaptured = state.players[Piece.White]!!.score
-
-        val blackRemaining = 14 - blackCaptured
-        val whiteRemaining = 14 - whiteCaptured
-
-        val diff = if (state.currentPlayer == Piece.Black) {
-            blackRemaining - whiteRemaining
-        } else {
-            whiteRemaining - blackRemaining
+    private fun pieceDifference(board: BoardState, player: Piece): Double {
+        val (black, white) = board.cells.values.fold(0 to 0) { (b, w), piece ->
+            when (piece) {
+                Piece.Black -> b + 1 to w
+                Piece.White -> b to w + 1
+                else -> b to w
+            }
         }
 
-        // Normalize to 0–10 scale
+        val diff = if (player == Piece.Black) black - white else white - black
         return ((diff + 6).coerceIn(0, 12)) / 12.0 * 10
     }
 
-    private fun centerDistance(state: StateRepresentation, maxDistance: Double): Double {
-        return state.getBoardState().cells.entries.sumOf { (coordinate, piece) ->
-            if (piece == state.currentPlayer) {
-                val distance = coordinate.findDistanceFrom(boardCenter.letter, boardCenter.number).toDouble()
-                val normalized = 1.0 - (distance / maxDistance)
-                normalized * 10
+    private fun centerControl(board: BoardState, player: Piece, maxDist: Double): Double {
+        return board.cells.entries.sumOf { (coord, piece) ->
+            if (piece == player) {
+                val dist = kotlin.math.abs(coord.letter.ordinal + coord.number.ordinal - centerSum).toDouble()
+                (1.0 - dist / maxDist) * 10
             } else 0.0
         }
     }
 
-    private fun edgePenalty(state: StateRepresentation): Double {
-        return state.getBoardState().cells.entries.sumOf { (coordinate, piece) ->
-            if (piece == state.currentPlayer) {
-                val dist = distanceFromEdge(coordinate).toDouble()
-                val penalty = (4.0 - dist).coerceAtLeast(0.0)
-                -penalty * 0.5
+    private fun edgePenalty(board: BoardState): Double {
+        return board.cells.entries.sumOf { (coord, piece) ->
+            if ((piece == Piece.Black || piece == Piece.White) && isOnDangerousEdge(coord)) {
+                -10.0
             } else 0.0
         }
     }
 
-    private fun distanceFromEdge(coordinate: Coordinate): Int {
-        val top = coordinate.letter.ordinal
-        val bottom = LetterCoordinate.entries.lastIndex - coordinate.letter.ordinal
-        val left = coordinate.number.ordinal
-        val right = NumberCoordinate.entries.lastIndex - coordinate.number.ordinal
-        return minOf(top, bottom, left, right)
+    private fun isOnDangerousEdge(coord: Coordinate): Boolean {
+        val l = coord.letter
+        val n = coord.number
+        return l == LetterCoordinate.I || l == LetterCoordinate.A ||
+                (l == LetterCoordinate.H && (n == NumberCoordinate.FOUR || n == NumberCoordinate.NINE)) ||
+                (l == LetterCoordinate.G && (n == NumberCoordinate.THREE || n == NumberCoordinate.NINE)) ||
+                (l == LetterCoordinate.F && (n == NumberCoordinate.TWO || n == NumberCoordinate.NINE)) ||
+                (l == LetterCoordinate.E && (n == NumberCoordinate.ONE || n == NumberCoordinate.NINE)) ||
+                (l == LetterCoordinate.D && (n == NumberCoordinate.ONE || n == NumberCoordinate.EIGHT)) ||
+                (l == LetterCoordinate.C && (n == NumberCoordinate.ONE || n == NumberCoordinate.SEVEN)) ||
+                (l == LetterCoordinate.B && (n == NumberCoordinate.ONE || n == NumberCoordinate.SIX))
     }
 
-    // Dynamically calculate max distance from center using current board's valid coordinates
-    private fun maxDistanceFromCenter(state: StateRepresentation): Double {
-        return state.getBoardState().cells.keys.maxOf {
-            it.findDistanceFrom(boardCenter.letter, boardCenter.number).toDouble()
+    private fun maxCenterDistance(board: BoardState): Double {
+        return board.cells.keys.maxOf {
+            kotlin.math.abs(it.letter.ordinal + it.number.ordinal - centerSum).toDouble()
         }
     }
 
-    private fun dynamicWeights(movesLeft: Int): Map<String, Double> {
-        return when {
-            movesLeft > 30 -> mapOf(
-                "pieceCountWeight" to 0.3,
-                "centerDistanceWeight" to 0.5,
-                "edgePenaltyWeight" to 0.2
-            )
-            movesLeft > 15 -> mapOf(
-                "pieceCountWeight" to 0.4,
-                "centerDistanceWeight" to 0.4,
-                "edgePenaltyWeight" to 0.2
-            )
-            else -> mapOf(
-                "pieceCountWeight" to 0.6,
-                "centerDistanceWeight" to 0.3,
-                "edgePenaltyWeight" to 0.1
-            )
-        }
+    private fun dynamicWeights(movesLeft: Int): Map<String, Double> = when {
+        movesLeft > 30 -> mapOf(
+            "pieceCountWeight" to 0.3,
+            "centerDistanceWeight" to 0.5,
+            "edgePenaltyWeight" to 0.2
+        )
+        movesLeft > 15 -> mapOf(
+            "pieceCountWeight" to 0.4,
+            "centerDistanceWeight" to 0.4,
+            "edgePenaltyWeight" to 0.2
+        )
+        else -> mapOf(
+            "pieceCountWeight" to 0.6,
+            "centerDistanceWeight" to 0.3,
+            "edgePenaltyWeight" to 0.1
+        )
     }
 }
