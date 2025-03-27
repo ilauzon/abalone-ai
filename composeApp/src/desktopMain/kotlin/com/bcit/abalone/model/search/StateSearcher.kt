@@ -102,7 +102,7 @@ class StateSearcher(private val heuristic: Heuristic) {
             if (isMax) {
                 alpha = max(alpha, v)
             } else {
-                beta = min(alpha, v)
+                beta = min(beta, v)
             }
         }
         return v to bestResult!!
