@@ -475,7 +475,7 @@ class AbaloneViewModel : ViewModel() {
 
     //----AI move start from here---------------------------------------------
     // Black side. when choose bot vs. bot mode, need also change this to anther heuristic
-    val aiHeuristic1 = CarolHeuristic()
+    val aiHeuristic1 = IsaacHeuristic()
     val searcher1 = StateSearcher(aiHeuristic1)
 
     fun AImove1(firstMove: Boolean = false) {
@@ -503,7 +503,7 @@ class AbaloneViewModel : ViewModel() {
 
 
     // White side, if choose human vs. bot, only change this to your heuristic.
-    val aiHeuristic2 = CalvinHeuristic()
+    val aiHeuristic2 = IsaacHeuristic()
     val searcher2 = StateSearcher(aiHeuristic2)
     fun AImove2() {
         println("In search")
