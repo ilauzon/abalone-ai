@@ -75,4 +75,25 @@ class IsaacHeuristicTest {
         println(testCase.toStringPretty())
         println("Closeness: $closeness")
     }
+
+    @Test
+    fun testAdjacency() {
+        var testCase = StateRepresentation(
+            board = BoardState(BoardState.Layout.STANDARD),
+            movesRemaining = 50,
+            currentPlayer = Piece.Black
+        )
+
+        var adjacency = IsaacHeuristic.adjacency(testCase.board)
+        assertEquals(0, adjacency)
+
+        val nextCase = StateSpaceGenerator.result(testCase, Action(setOf(
+            Coordinate.get(L.A, N.ONE),
+            Coordinate.get(L.B, N.TWO),
+            Coordinate.get(L.C, N.THREE),
+        ), MoveDirection.PosZ))
+
+        adjacency = IsaacHeuristic.adjacency(nextCase.board)
+        assertEquals(52 - 54, adjacency)
+    }
 }

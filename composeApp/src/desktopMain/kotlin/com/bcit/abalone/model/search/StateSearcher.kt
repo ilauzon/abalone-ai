@@ -2,6 +2,7 @@ package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.Action
+import com.bcit.abalone.model.BoardState
 import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.expand
@@ -13,6 +14,11 @@ import kotlin.math.min
  * Responsible for performing search on a game tree. The game tree is generated dynamically.
  */
 class StateSearcher(private val heuristic: Heuristic) {
+
+    private val cache = TranspositionTable(1_000_000)
+    var cacheHits = 0
+    var cacheMisses = 0
+    var collisions = 0
 
     /**
      * Performs minimax search with alpha-beta pruning.
@@ -79,6 +85,14 @@ class StateSearcher(private val heuristic: Heuristic) {
             return eval(state) to state
         }
 
+        val cachedValue = cache[state.board.cells]
+        if (cachedValue != null && cachedValue.depth >= depth) {
+            cacheHits++
+            return cachedValue.value.toDouble() to state
+        } else {
+            cacheMisses++
+        }
+
         var v = if (isMax) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
         var bestResult: StateRepresentation? = null
         var alpha = a
@@ -98,13 +112,23 @@ class StateSearcher(private val heuristic: Heuristic) {
                 v = newV
                 bestResult = result
             }
-            if (isMax && v > beta || !isMax && v < alpha) return v to bestResult!!
+            if (isMax && v > beta || !isMax && v < alpha) {
+//                if (cache[state.board.cells] != null && cache[state.board.cells] != TranspositionTable.Entry(v.toFloat(), depth)) {
+//                    collisions++
+//                }
+                cache[state.board.cells] = TranspositionTable.Entry(v.toFloat(), depth)
+                return v to bestResult!!
+            }
             if (isMax) {
                 alpha = max(alpha, v)
             } else {
                 beta = min(beta, v)
             }
         }
+//        if (cache[state.board.cells] != null && cache[state.board.cells] != TranspositionTable.Entry(v.toFloat(), depth)) {
+//            collisions++
+//        }
+        cache[state.board.cells] = TranspositionTable.Entry(v.toFloat(), depth)
         return v to bestResult!!
     }
 

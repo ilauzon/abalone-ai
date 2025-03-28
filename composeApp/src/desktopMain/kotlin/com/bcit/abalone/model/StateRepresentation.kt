@@ -81,6 +81,10 @@ class StateRepresentation(
                 && currentPlayer == other.currentPlayer
 
     }
+
+    override fun hashCode(): Int {
+        return arrayOf(board.hashCode(), movesRemaining).contentHashCode()
+    }
 }
 
 /**

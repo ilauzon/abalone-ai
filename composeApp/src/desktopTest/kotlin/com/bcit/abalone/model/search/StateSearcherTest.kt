@@ -13,8 +13,7 @@ class StateSearcherTest {
 
     @Test
     fun testStateSearcher() {
-        val searcher = StateSearcher(IsaacHeuristic())
-        val moves = 10
+        val moves = 80
         var state = StateRepresentation(
             board = BoardState(BoardState.Layout.STANDARD),
             movesRemaining = moves,
@@ -25,9 +24,17 @@ class StateSearcherTest {
         var blackTurn = true
         var blackTime = Duration.ZERO
         var whiteTime = Duration.ZERO
+        val black = StateSearcher(IsaacHeuristic())
+        val white = StateSearcher(IsaacHeuristic())
+        var searcher = black
         while (!searcher.terminalTest(state)) {
             val (action, time) = measureTimedValue {
-                searcher.search(state, depth = 4, firstMove)
+                searcher.search(state, depth = 3, firstMove)
+            }
+            if (blackTurn) {
+                searcher = white
+            } else {
+                searcher = black
             }
             println("TIME FOR MOVE: $time")
             println("Black's turn: $blackTurn")
@@ -44,6 +51,12 @@ class StateSearcherTest {
         }
         println("TOTAL TIME FOR MATCH WITH $moves MOVES: $totalTime")
         println("BLACK TIME: $blackTime")
+        println("BLACK CACHE HITS: ${black.cacheHits}")
+        println("BLACK CACHE MISSES: ${black.cacheMisses}")
+        println("BLACK CACHE COLLISIONS: ${black.collisions}")
         println("WHITE TIME: $whiteTime")
+        println("WHITE CACHE HITS: ${white.cacheHits}")
+        println("WHITE CACHE MISSES: ${white.cacheMisses}")
+        println("WHITE CACHE COLLISIONS: ${white.collisions}")
     }
 }

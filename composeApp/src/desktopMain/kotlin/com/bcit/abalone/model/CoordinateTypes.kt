@@ -179,7 +179,7 @@ enum class NumberCoordinate {
     /** The maximum letter value of this line. */
     val max: LetterCoordinate get() = minMaxMapping[this]!!.second
     companion object {
-        private val minMaxMapping = mapOf(
+        private val minMaxMapping = hashMapOf(
             NULL to (LetterCoordinate.NULL to LetterCoordinate.NULL),
             ONE to (LetterCoordinate.A to LetterCoordinate.E),
             TWO to (LetterCoordinate.A to LetterCoordinate.F),
@@ -244,7 +244,7 @@ enum class LetterCoordinate {
     /** The minimum number value of this line. */
     val max: NumberCoordinate get() = minMaxMapping[this]!!.second
     companion object {
-        private val minMaxMapping = mapOf(
+        private val minMaxMapping = hashMapOf(
             NULL to (NumberCoordinate.NULL to NumberCoordinate.NULL),
             A to (NumberCoordinate.ONE to NumberCoordinate.FIVE),
             B to (NumberCoordinate.ONE to NumberCoordinate.SIX),
