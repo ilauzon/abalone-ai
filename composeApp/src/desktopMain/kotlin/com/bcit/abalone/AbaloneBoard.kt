@@ -31,35 +31,35 @@ fun createBoard(initialPosition: String): List<List<Cell>> {
         for (i in start until (start + columnLength[index])) {
             if(initialPosition=="Standard") {
                 val piece = when (c) {
-                    'I', 'H' -> Piece.Black
-                    'G' -> if (i in 5..7) Piece.Black else Piece.Empty
-                    'A', 'B' -> Piece.White
-                    'C' -> if (i in 3..5) Piece.White else Piece.Empty
+                    'I', 'H' -> Piece.White
+                    'G' -> if (i in 5..7) Piece.White else Piece.Empty
+                    'A', 'B' -> Piece.Black
+                    'C' -> if (i in 3..5) Piece.Black else Piece.Empty
                     else -> Piece.Empty
                 }
                 val cell = Cell(c, i, piece)
                 cells.add(cell)
             }else if(initialPosition=="German Daisy") {
                 val piece = when (c) {
-                    'H' -> if (i in 4..5) Piece.Black else if(i in 8..9) Piece.White else Piece.Empty
-                    'G' -> if (i in 3..5) Piece.Black else if(i in 7..9) Piece.White else Piece.Empty
-                    'F' -> if (i in 3..4) Piece.Black else if(i in 7..8) Piece.White else Piece.Empty
-                    'D' -> if (i in 2..3) Piece.White else if(i in 6..7) Piece.Black else Piece.Empty
-                    'C' -> if (i in 1..3) Piece.White else if(i in 5..7) Piece.Black else Piece.Empty
-                    'B' -> if (i in 1..2) Piece.White else if(i in 5..6) Piece.Black else Piece.Empty
+                    'H' -> if (i in 4..5) Piece.White else if(i in 8..9) Piece.Black else Piece.Empty
+                    'G' -> if (i in 3..5) Piece.White else if(i in 7..9) Piece.Black else Piece.Empty
+                    'F' -> if (i in 3..4) Piece.White else if(i in 7..8) Piece.Black else Piece.Empty
+                    'D' -> if (i in 2..3) Piece.Black else if(i in 6..7) Piece.White else Piece.Empty
+                    'C' -> if (i in 1..3) Piece.Black else if(i in 5..7) Piece.White else Piece.Empty
+                    'B' -> if (i in 1..2) Piece.Black else if(i in 5..6) Piece.White else Piece.Empty
                     else -> Piece.Empty
                 }
                 val cell = Cell(c, i, piece)
                 cells.add(cell)
             }else{
                 val piece = when (c) {
-                    'I' -> if (i in 5..6) Piece.Black else if(i in 8..9) Piece.White else Piece.Empty
-                    'H' -> if (i in 4..6) Piece.Black else if(i in 7..9) Piece.White else Piece.Empty
-                    'G' -> if (i in 4..5) Piece.Black else if(i in 7..8) Piece.White else Piece.Empty
+                    'I' -> if (i in 5..6) Piece.White else if(i in 8..9) Piece.Black else Piece.Empty
+                    'H' -> if (i in 4..6) Piece.White else if(i in 7..9) Piece.Black else Piece.Empty
+                    'G' -> if (i in 4..5) Piece.White else if(i in 7..8) Piece.Black else Piece.Empty
 
-                    'C' -> if (i in 2..3) Piece.White else if(i in 5..6) Piece.Black else Piece.Empty
-                    'B' -> if (i in 1..3) Piece.White else if(i in 4..6) Piece.Black else Piece.Empty
-                    'A' -> if (i in 1..2) Piece.White else if(i in 4..5) Piece.Black else Piece.Empty
+                    'C' -> if (i in 2..3) Piece.Black else if(i in 5..6) Piece.White else Piece.Empty
+                    'B' -> if (i in 1..3) Piece.Black else if(i in 4..6) Piece.White else Piece.Empty
+                    'A' -> if (i in 1..2) Piece.Black else if(i in 4..5) Piece.White else Piece.Empty
                     else -> Piece.Empty
                 }
                 val cell = Cell(c, i, piece)
