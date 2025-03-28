@@ -436,7 +436,7 @@ class AbaloneViewModel : ViewModel() {
                 (selectedMode == "Bot Vs. Human" && currentPlayer.value == Piece.Black))
                 {
                 println("AI-1 move")
-                AImove1()
+                AImove1(firstMove = false)
             }
 
             if (selectedMode == "Bot Vs. Bot" || selectedMode == "Human Vs. Bot") {
