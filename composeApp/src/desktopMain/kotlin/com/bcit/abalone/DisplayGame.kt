@@ -22,10 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.lifecycle.viewModelScope
+import com.bcit.abalone.model.AbaloneFileIO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -316,6 +319,26 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                     .sumOf { it.moveDuration }
                 Text("Black Total time spent   ${p1Time}ms", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("White Total time spent   ${p2Time}ms", modifier = Modifier.padding(top = 10.dp),fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            var modalDismiss by remember{ mutableStateOf(true)}
+            Button(onClick = {
+                val moves = AbaloneFileIO.stringifyMoves(viewModel.moveHistory)
+                val mode = viewModel.selectedMode
+                val output: MutableList<String> = mutableListOf(mode)
+                output.addAll(moves)
+                val date = System.currentTimeMillis().toString()
+                AbaloneFileIO.writeDataFile("${date}.txt", output){
+                    modalDismiss = false
+                }
+            }) {
+                Text("Print Move History")
+            }
+            if (!modalDismiss) {
+                AlertDialog(
+                    onDismissRequest = {modalDismiss = true},
+                    buttons = {},
+                    text = {Text("Move history has been printed!")}
+                )
             }
         }
     }

@@ -1,7 +1,9 @@
 package com.bcit.abalone.model
 
+import com.bcit.abalone.AbaloneViewModel
 import com.bcit.abalone.Piece
 import java.io.File
+import java.util.Date
 
 /**
  * Static class that provides functions for reading, parsing, and writing .input, .board, and .move
@@ -126,6 +128,30 @@ class AbaloneFileIO private constructor() {
             val stringActions: MutableList<String> = mutableListOf()
             actions.forEach {
                 stringActions.add(stringifyAction(it))
+            }
+            return stringActions
+        }
+
+        /**
+         * Returns the move as a string
+         *
+         * @param move a MoveRecord object
+         * @return move as a string
+         */
+        fun stringifyMove(move: AbaloneViewModel.MoveRecord): String {
+            return move.movePath
+        }
+
+        /**
+         * Returns the given list of moves as a list of strings.
+         *
+         * @param moves List<MoveRecord>
+         * @return actions as a List<String>
+         */
+        fun stringifyMoves(moves: List<AbaloneViewModel.MoveRecord>): List<String> {
+            val stringActions: MutableList<String> = mutableListOf()
+            moves.forEach {
+                stringActions.add(stringifyMove(it))
             }
             return stringActions
         }
