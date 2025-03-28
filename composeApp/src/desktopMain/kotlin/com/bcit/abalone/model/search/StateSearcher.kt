@@ -10,6 +10,7 @@ import com.bcit.abalone.model.StateSpaceGenerator.Companion.result
 import kotlin.math.max
 import kotlin.math.min
 
+
 /**
  * Responsible for performing search on a game tree. The game tree is generated dynamically.
  */
@@ -81,6 +82,7 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @return the estimated utility of the given state.
      */
     private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int): Pair<Double, StateRepresentation> {
+        val startTime = System.nanoTime()
         if (depth <= 0 || terminalTest(state)) {
             return eval(state) to state
         }
@@ -105,8 +107,22 @@ class StateSearcher(private val heuristic: Heuristic) {
 //            sortedStates = states.sortedBy { it.second }
 //        }
 //        for ((result, _) in sortedStates) {
-        for (action in actions(state)) {
-            val result = result(state, action)
+
+        // ordering nodes, if isMax is true, sort in descending order, else sort in ascending order
+        val sortedStates = actions(state)
+            .map { action ->
+                val newState = result(state, action)
+                newState to eval(newState) }
+            .sortedByDescending { if (isMax) it.second else -it.second }
+
+//        for ((s, value) in sortedStates) {
+//            print("$value, ")
+//            print(s)
+//        }
+//        println()
+//        println("-----------------------------------------------")
+        for ((result, _) in sortedStates) {
+//            val result = result(state, action)
             val newV = value(!isMax, result, alpha, beta, depth - 1).first
             if (isMax && newV > v || !isMax && newV < v) {
                 v = newV
@@ -129,6 +145,8 @@ class StateSearcher(private val heuristic: Heuristic) {
 //            collisions++
 //        }
         cache[state.board.cells] = TranspositionTable.Entry(v.toFloat(), depth)
+//        val endTime = System.nanoTime() // End time
+//        println("Minimax: Depth: $depth, Time: ${(endTime - startTime) / 1_000_000} ms")
         return v to bestResult!!
     }
 
