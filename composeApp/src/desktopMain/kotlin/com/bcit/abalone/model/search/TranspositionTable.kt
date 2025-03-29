@@ -1,5 +1,7 @@
 package com.bcit.abalone.model.search
 
+import com.bcit.abalone.Piece
+import com.bcit.abalone.model.Action
 import com.bcit.abalone.model.BoardMap
 import com.bcit.abalone.model.BoardState
 import java.util.LinkedHashMap
@@ -11,18 +13,24 @@ import java.util.LinkedHashMap
  */
 class TranspositionTable (
     private val capacity: Int
-) : LinkedHashMap<BoardMap, TranspositionTable.Entry>(
+) : LinkedHashMap<TranspositionTable.Key, TranspositionTable.Entry>(
     capacity,
     0.75f,
     true
 ) {
 
-    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<BoardMap, Entry>?): Boolean {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, Entry>?): Boolean {
         return size > capacity
     }
 
+    data class Key(
+        val currentPlayer: BoardMap,
+        val move: Piece,
+    )
+
     data class Entry(
-        val value: Float,
+        val value: Double,
+        val action: Action,
         val depth: Int,
         )
 }

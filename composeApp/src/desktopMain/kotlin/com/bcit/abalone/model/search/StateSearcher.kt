@@ -7,6 +7,9 @@ import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.expand
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.result
+import java.lang.Exception
+import java.util.*
+import javax.swing.plaf.nimbus.State
 import kotlin.math.max
 import kotlin.math.min
 
@@ -20,6 +23,12 @@ class StateSearcher(private val heuristic: Heuristic) {
     var cacheHits = 0
     var cacheMisses = 0
     var collisions = 0
+
+    /**
+     * A place to store the action chosen by minimax search once it has completed.
+     * Is mutated by calling the search() function.
+     */
+    private var actionChosen: Action? = null
 
     /**
      * Performs minimax search with alpha-beta pruning.
@@ -45,18 +54,17 @@ class StateSearcher(private val heuristic: Heuristic) {
         // Black is Max because they move first.
         if (currentPlayer == Piece.Black) {
             if (firstMove) {
-                val states = expand(state, 1)
+                val states = expand(state)
                 println("RANDOM FIRST MOVE")
-                bestState = states.random().second
+                return states.random().first
             } else {
-                bestState = value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second
+                value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth)
             }
         } else {
-            bestState = value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth).second
+            value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth)
         }
 
-        val actionStates = expand(state, 1)
-        return actionStates.find { it.second == bestState }!!.first
+        return actionChosen!!
     }
 
     /**
@@ -74,6 +82,10 @@ class StateSearcher(private val heuristic: Heuristic) {
     /**
      * Combined Min-Value and Max-Value functions, controlled by the isMax flag.
      *
+     *
+     * This function writes to the actionChosen instance variable upon completing its recursive calls. The alternative
+     * to this would have been passing around a reference to an action to every recursive call of value().
+     *
      * @param isMax true if the calculation is Max-Value().
      * @param state the state being examined.
      * @param a alpha.
@@ -81,38 +93,29 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @param depth the depth to search to.
      * @return the estimated utility of the given state.
      */
-    private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int): Pair<Double, StateRepresentation> {
+    private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int): Double {
         val startTime = System.nanoTime()
         if (depth <= 0 || terminalTest(state)) {
-            return eval(state) to state
+            return eval(state)
         }
 
-        val cachedValue = cache[state.board.cells]
-        if (cachedValue != null && cachedValue.depth >= depth) {
-            cacheHits++
-            return cachedValue.value.toDouble() to state
-        } else {
-            cacheMisses++
+        val cachedValue = getCachedState(state, depth)
+        if (cachedValue != null) {
+            actionChosen = cachedValue.action
+            return cachedValue.value
         }
 
         var v = if (isMax) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
         var bestResult: StateRepresentation? = null
+        var bestAction: Action? = null
         var alpha = a
         var beta = b
-//        val states = actions(state).map { result(state, it) to eval(state) }
-//        val sortedStates: List<Pair<StateRepresentation, Double>>
-//        if (isMax) {
-//            sortedStates = states.sortedByDescending { it.second }
-//        } else {
-//            sortedStates = states.sortedBy { it.second }
-//        }
-//        for ((result, _) in sortedStates) {
 
         // ordering nodes, if isMax is true, sort in descending order, else sort in ascending order
         val sortedStates = actions(state)
             .map { action ->
                 val newState = result(state, action)
-                newState to eval(newState) }
+                Triple(newState, eval(newState), action) }
             .sortedByDescending { if (isMax) it.second else -it.second }
 
 //        for ((s, value) in sortedStates) {
@@ -121,19 +124,20 @@ class StateSearcher(private val heuristic: Heuristic) {
 //        }
 //        println()
 //        println("-----------------------------------------------")
-        for ((result, _) in sortedStates) {
-//            val result = result(state, action)
-            val newV = value(!isMax, result, alpha, beta, depth - 1).first
+        if (sortedStates.isEmpty()) throw IllegalArgumentException(
+            "Zero actions were generated from the non-terminal state."
+        )
+        for ((result, _, action) in sortedStates) {
+            val newV = value(!isMax, result, alpha, beta, depth - 1)
             if (isMax && newV > v || !isMax && newV < v) {
                 v = newV
                 bestResult = result
+                bestAction = action
             }
             if (isMax && v > beta || !isMax && v < alpha) {
-//                if (cache[state.board.cells] != null && cache[state.board.cells] != TranspositionTable.Entry(v.toFloat(), depth)) {
-//                    collisions++
-//                }
-                cache[state.board.cells] = TranspositionTable.Entry(v.toFloat(), depth)
-                return v to bestResult!!
+                cacheState(state, bestAction!!, v, depth)
+                actionChosen = bestAction!!
+                return v
             }
             if (isMax) {
                 alpha = max(alpha, v)
@@ -141,13 +145,11 @@ class StateSearcher(private val heuristic: Heuristic) {
                 beta = min(beta, v)
             }
         }
-//        if (cache[state.board.cells] != null && cache[state.board.cells] != TranspositionTable.Entry(v.toFloat(), depth)) {
-//            collisions++
-//        }
-        cache[state.board.cells] = TranspositionTable.Entry(v.toFloat(), depth)
 //        val endTime = System.nanoTime() // End time
 //        println("Minimax: Depth: $depth, Time: ${(endTime - startTime) / 1_000_000} ms")
-        return v to bestResult!!
+        cacheState(state, bestAction!!, v, depth)
+        actionChosen = bestAction!!
+        return v
     }
 
     /**
@@ -156,6 +158,26 @@ class StateSearcher(private val heuristic: Heuristic) {
      */
     private fun eval(state: StateRepresentation): Double {
         return heuristic.heuristic(state)
+    }
+
+    private fun cacheState(state: StateRepresentation, action: Action, value: Double, depth: Int) {
+        cache[TranspositionTable.Key(
+            state.board.cells,
+            state.currentPlayer)] = TranspositionTable.Entry(value, action, depth)
+    }
+
+    private fun getCachedState(state: StateRepresentation, depth: Int): TranspositionTable.Entry? {
+        val cachedValue = cache[TranspositionTable.Key(
+            state.board.cells,
+            state.currentPlayer
+        )]
+        if (cachedValue == null || cachedValue.depth < depth) {
+            cacheMisses++
+            return null
+        } else {
+            cacheHits++
+            return cachedValue
+        }
     }
 
     /**

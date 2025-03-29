@@ -45,6 +45,7 @@ class StateSearcherTest {
             }
             totalTime += time
             state = StateSpaceGenerator.result(state, action)
+            println(action)
             println(state.toStringPretty())
             firstMove = false
             blackTurn = !blackTurn
@@ -53,10 +54,8 @@ class StateSearcherTest {
         println("BLACK TIME: $blackTime")
         println("BLACK CACHE HITS: ${black.cacheHits}")
         println("BLACK CACHE MISSES: ${black.cacheMisses}")
-        println("BLACK CACHE COLLISIONS: ${black.collisions}")
         println("WHITE TIME: $whiteTime")
         println("WHITE CACHE HITS: ${white.cacheHits}")
         println("WHITE CACHE MISSES: ${white.cacheMisses}")
-        println("WHITE CACHE COLLISIONS: ${white.collisions}")
     }
 }

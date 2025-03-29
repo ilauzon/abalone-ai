@@ -202,8 +202,8 @@ class StateSpaceGenerator {
 
            for (coordinate in oldCoordinates) {
                // check if the score should be changed
-               val fromCell = newBoard[coordinate]
-               val toCell = newBoard[coordinate.move(action.direction)]
+               val fromCell = oldBoard[coordinate]
+               val toCell = oldBoard[coordinate.move(action.direction)]
                if (fromCell == state.currentPlayer.opposite() && toCell == Piece.OffBoard) {
                    scoreAdded++
                }
@@ -237,7 +237,7 @@ class StateSpaceGenerator {
            return newState
        }
 
-       fun expand(state: StateRepresentation, depth: Int): List<Pair<Action, StateRepresentation>> {
+       fun expand(state: StateRepresentation, depth: Int = 1): List<Pair<Action, StateRepresentation>> {
            if (depth == 1) {
                return expandOnce(state)
            }

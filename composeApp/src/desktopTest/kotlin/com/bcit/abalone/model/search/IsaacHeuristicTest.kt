@@ -1,12 +1,7 @@
 package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
-import com.bcit.abalone.model.Action
-import com.bcit.abalone.model.BoardState
-import com.bcit.abalone.model.Coordinate
-import com.bcit.abalone.model.MoveDirection
-import com.bcit.abalone.model.StateRepresentation
-import com.bcit.abalone.model.StateSpaceGenerator
+import com.bcit.abalone.model.*
 import com.bcit.abalone.model.LetterCoordinate as L
 import com.bcit.abalone.model.NumberCoordinate as N
 import kotlin.test.Test
@@ -95,5 +90,29 @@ class IsaacHeuristicTest {
 
         adjacency = IsaacHeuristic.adjacency(nextCase.board)
         assertEquals(52 - 54, adjacency)
+    }
+
+    @Test
+    fun testCase() {
+        fun byteArrayOfInts(vararg ints: Int) = ByteArray(ints.size) { pos -> ints[pos].toByte() }
+        val state = StateRepresentation(
+            board = BoardState(BoardMap(byteArrayOfInts(
+                    0,0,0,0,0,
+                   2,2,2,2,2,0,
+                  0,0,2,2,2,2,0,
+                 0,0,2,2,2,0,0,0,
+                0,2,0,1,1,1,1,2,0,
+                 0,0,1,1,1,1,0,0,
+                  0,1,1,1,1,0,0,
+                   0,1,1,0,0,0,
+                    0,0,0,0,0,
+                3,
+            ))),
+            movesRemaining = 10,
+            currentPlayer = Piece.Black
+        )
+        println(state.toStringPretty())
+        val bestAction = StateSearcher(IsaacHeuristic()).search(state, depth = 3)
+        println(bestAction)
     }
 }

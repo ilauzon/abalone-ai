@@ -42,7 +42,10 @@ class BoardMap : Map<Coordinate, Piece> {
         pieceMap = ByteArray(62) { 0 }
     }
 
-    private constructor(pieceMap: ByteArray) {
+    /**
+     * Constructs a BoardMap using a ByteArray. For testing purposes only outside of the class!
+     */
+    constructor(pieceMap: ByteArray) {
         this.pieceMap = pieceMap.clone()
     }
 
