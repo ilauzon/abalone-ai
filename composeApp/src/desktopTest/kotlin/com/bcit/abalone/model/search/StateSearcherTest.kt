@@ -57,5 +57,6 @@ class StateSearcherTest {
         println("WHITE TIME: $whiteTime")
         println("WHITE CACHE HITS: ${white.cacheHits}")
         println("WHITE CACHE MISSES: ${white.cacheMisses}")
+        println("COLLISIONS: ${TranspositionTable.Key.collisions}")
     }
 }

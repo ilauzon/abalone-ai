@@ -30,12 +30,15 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
         /**
          * The map of coordinates that is looked up whenever an instance is retrieved.
          */
-        private val coordinates: HashMap<Int, Coordinate> = HashMap()
+        private val coordinates: Array<Coordinate> = Array(
+            LetterCoordinate.I.ordinal * 16 + NumberCoordinate.NINE.ordinal + 1,
+        ) { offBoard }
 
         /**
          * A list of all adjacent coordinates to each coordinate, to be generated at the start of the program.
          */
-        private val adjacentMap: HashMap<Coordinate, Map<MoveDirection, Coordinate>> = hashMapOf()
+//        private val adjacentMap: HashMap<Coordinate, Map<MoveDirection, Coordinate>> = hashMapOf()
+        private val adjacentArray: Array<Coordinate> = Array(coordinates.size * 6) { offBoard }
 
         /**
          * Initializes the coordinates map and adjacency map.
@@ -44,16 +47,20 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
             for (l: LetterCoordinate in LetterCoordinate.entries) {
                 for (n: NumberCoordinate in l.min .. l.max) {
                     val coord = Coordinate(l, n)
-                    coordinates[hash(l, n)] = coord
-                    val adjacent = hashMapOf(
-                        MoveDirection.PosX to coord.initMove(MoveDirection.PosX),
-                        MoveDirection.NegX to coord.initMove(MoveDirection.NegX),
-                        MoveDirection.PosY to coord.initMove(MoveDirection.PosY),
-                        MoveDirection.NegY to coord.initMove(MoveDirection.NegY),
-                        MoveDirection.PosZ to coord.initMove(MoveDirection.PosZ),
-                        MoveDirection.NegZ to coord.initMove(MoveDirection.NegZ),
-                    )
-                    adjacentMap[coord] = adjacent
+                    val pos = hash(l, n)
+                    coordinates[pos] = coord
+                    for (direction in MoveDirection.entries) {
+                        adjacentArray[pos * 6 + direction.ordinal] = coord.initMove(direction)
+                    }
+//                    val adjacent = hashMapOf(
+//                        MoveDirection.PosX to coord.initMove(MoveDirection.PosX),
+//                        MoveDirection.NegX to coord.initMove(MoveDirection.NegX),
+//                        MoveDirection.PosY to coord.initMove(MoveDirection.PosY),
+//                        MoveDirection.NegY to coord.initMove(MoveDirection.NegY),
+//                        MoveDirection.PosZ to coord.initMove(MoveDirection.PosZ),
+//                        MoveDirection.NegZ to coord.initMove(MoveDirection.NegZ),
+//                    )
+//                    adjacentMap[coord] = adjacent
                 }
             }
         }
@@ -73,7 +80,7 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
             if (number < letter.min || number > letter.max) {
                 throw IllegalArgumentException("Coordinate $letter$number does not exist on the board")
             }
-            return coordinates[hash(letter, number)]!!
+            return coordinates[hash(letter, number)]
         }
 
         /**
@@ -113,7 +120,8 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
      * @return the new coordinate. Does not mutate the original coordinate.
      */
     fun move(direction: MoveDirection): Coordinate {
-        val newCoordinate = adjacentMap[this]!![direction]!!
+        val newCoordinate = adjacentArray[this.hashCode() * 6 + direction.ordinal]
+//        val newCoordinate = adjacentMap[this]!![direction]!!
         return newCoordinate
     }
 

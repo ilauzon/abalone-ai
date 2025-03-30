@@ -1,6 +1,7 @@
 package com.bcit.abalone.model
 
 import com.bcit.abalone.Piece
+import kotlin.random.Random
 import com.bcit.abalone.model.LetterCoordinate as L
 import com.bcit.abalone.model.NumberCoordinate as N
 
@@ -14,9 +15,16 @@ class BoardMap : Map<Coordinate, Piece> {
 
     companion object {
         val middle = Coordinate.get(L.E, N.FIVE)
-        private val coordMapping: HashMap<Coordinate, Int> = hashMapOf()
         private val setupKeys: MutableSet<Coordinate> = mutableSetOf()
         private val refKeys: Set<Coordinate>
+        private val zobristTable: IntArray = IntArray(61 * 3)
+        private val pieceMapping = arrayOf(
+            Piece.Empty,
+            Piece.Black,
+            Piece.White,
+            Piece.OffBoard,
+        )
+
 
         init {
             var counter = 0
@@ -24,32 +32,40 @@ class BoardMap : Map<Coordinate, Piece> {
                 for (n: N in N.entries.slice(l.min.ordinal..l.max.ordinal)) {
                     val coord = Coordinate.get(l, n)
                     setupKeys.add(coord)
-                    coordMapping[coord] = counter
                     counter++
                 }
             }
             if (counter != 61) throw Exception("Invalid number of pieces generated.")
             setupKeys.add(Coordinate.offBoard)
-            coordMapping[Coordinate.offBoard] = counter
             refKeys = setupKeys.toSet()
+
+            initZobrist()
+        }
+
+        private fun initZobrist() {
+            val random = Random(0)
+            for (i in 0 until 61) {
+                for (j in 0 .. 2) {
+                    zobristTable[i * 3 + j] = random.nextInt()
+                }
+            }
         }
     }
 
     override val size: Int = 62
     override val keys: Set<Coordinate> = refKeys
+    private val pieceMap: ByteArray
 
     constructor() {
-        pieceMap = ByteArray(62) { 0 }
+       pieceMap = ByteArray( L.I.ordinal * 16 + N.NINE.ordinal + 1 )
     }
 
     /**
-     * Constructs a BoardMap using a ByteArray. For testing purposes only outside of the class!
+     * Constructs a BoardMap using a ByteArray. For testing purposes only when used outside of the class!
      */
     constructor(pieceMap: ByteArray) {
         this.pieceMap = pieceMap.clone()
     }
-
-    private val pieceMap: ByteArray
 
     override val values: Collection<Piece>
         get() {
@@ -70,12 +86,13 @@ class BoardMap : Map<Coordinate, Piece> {
         }
 
     override operator fun get(key: Coordinate): Piece {
-        val offset = coordMapping[key]!!
-        return Piece.entries[pieceMap[offset].toInt()]
+        val offset = key.hashCode()
+        val piece = pieceMap[offset].toInt()
+        return pieceMapping[piece]
     }
 
     operator fun set(key: Coordinate, value: Piece) {
-        val offset = coordMapping[key]!!
+        val offset = key.hashCode()
         pieceMap[offset] = value.ordinal.toByte()
     }
 
@@ -101,7 +118,11 @@ class BoardMap : Map<Coordinate, Piece> {
     }
 
     override fun hashCode(): Int {
-        return pieceMap.contentHashCode()
+        var hash = 0
+        for (i in 0 until 61) {
+            hash = hash xor zobristTable[i * 3 + pieceMap[i]]
+        }
+        return hash
     }
 
     override fun isEmpty(): Boolean {

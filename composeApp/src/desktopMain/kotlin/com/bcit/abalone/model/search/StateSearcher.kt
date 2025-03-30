@@ -2,14 +2,10 @@ package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
 import com.bcit.abalone.model.Action
-import com.bcit.abalone.model.BoardState
 import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.expand
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.result
-import java.lang.Exception
-import java.util.*
-import javax.swing.plaf.nimbus.State
 import kotlin.math.max
 import kotlin.math.min
 
@@ -22,7 +18,6 @@ class StateSearcher(private val heuristic: Heuristic) {
     private val cache = TranspositionTable(1_000_000)
     var cacheHits = 0
     var cacheMisses = 0
-    var collisions = 0
 
     /**
      * A place to store the action chosen by minimax search once it has completed.
@@ -48,8 +43,6 @@ class StateSearcher(private val heuristic: Heuristic) {
             throw IllegalArgumentException("the given state is a terminal state. No action can be chosen.")
         }
         val currentPlayer = toMove(state)
-
-        val bestState: StateRepresentation
 
         // Black is Max because they move first.
         if (currentPlayer == Piece.Black) {
@@ -106,7 +99,6 @@ class StateSearcher(private val heuristic: Heuristic) {
         }
 
         var v = if (isMax) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
-        var bestResult: StateRepresentation? = null
         var bestAction: Action? = null
         var alpha = a
         var beta = b
@@ -131,12 +123,11 @@ class StateSearcher(private val heuristic: Heuristic) {
             val newV = value(!isMax, result, alpha, beta, depth - 1)
             if (isMax && newV > v || !isMax && newV < v) {
                 v = newV
-                bestResult = result
                 bestAction = action
             }
             if (isMax && v > beta || !isMax && v < alpha) {
                 cacheState(state, bestAction!!, v, depth)
-                actionChosen = bestAction!!
+                actionChosen = bestAction
                 return v
             }
             if (isMax) {
@@ -148,7 +139,7 @@ class StateSearcher(private val heuristic: Heuristic) {
 //        val endTime = System.nanoTime() // End time
 //        println("Minimax: Depth: $depth, Time: ${(endTime - startTime) / 1_000_000} ms")
         cacheState(state, bestAction!!, v, depth)
-        actionChosen = bestAction!!
+        actionChosen = bestAction
         return v
     }
 
@@ -167,10 +158,8 @@ class StateSearcher(private val heuristic: Heuristic) {
     }
 
     private fun getCachedState(state: StateRepresentation, depth: Int): TranspositionTable.Entry? {
-        val cachedValue = cache[TranspositionTable.Key(
-            state.board.cells,
-            state.currentPlayer
-        )]
+        val key = TranspositionTable.Key(state.board.cells, state.currentPlayer)
+        val cachedValue = cache[key]
         if (cachedValue == null || cachedValue.depth < depth) {
             cacheMisses++
             return null
