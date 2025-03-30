@@ -18,9 +18,33 @@ class TranspositionTable (
     0.75f,
     true
 ) {
+    private var insertedCount = 0
+
+    override fun put(key: Key, value: Entry): Entry? {
+        insertedCount++
+        return super.put(key, value)
+    }
 
     override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, Entry>?): Boolean {
         return size > capacity
+    }
+
+    fun collisions(): Int {
+        val map = HashMap<Int, Int>()
+        for (value in this.values) {
+            if (map[value.hashCode()] == null)
+                map[value.hashCode()] = 0
+            map[value.hashCode()] = map[value.hashCode()]!! + 1
+        }
+        var sum = 0
+        for (value in map.values) {
+            if (value > 1) sum += value - 1
+        }
+        return sum
+    }
+
+    fun totalInserted(): Int {
+        return insertedCount
     }
 
     data class Key(
@@ -29,8 +53,6 @@ class TranspositionTable (
     ) {
         companion object {
             private val turnHash = IntArray(4)
-            private val generatedHashCodes: HashMap<Int, Key> = hashMapOf()
-            var collisions: Int = 0
 
             init {
                 val random = Random(1)
@@ -43,11 +65,6 @@ class TranspositionTable (
 
         override fun hashCode(): Int {
             val hash = board.hashCode() xor turnHash[move.ordinal]
-            if (generatedHashCodes[hash] != null && generatedHashCodes[hash] != this) {
-                collisions++
-            } else {
-                generatedHashCodes[hash] = this
-            }
             return hash
         }
 

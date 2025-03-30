@@ -17,7 +17,8 @@ class BoardMap : Map<Coordinate, Piece> {
         val middle = Coordinate.get(L.E, N.FIVE)
         private val setupKeys: MutableSet<Coordinate> = mutableSetOf()
         private val refKeys: Set<Coordinate>
-        private val zobristTable: IntArray = IntArray(61 * 3)
+        private val rand = Random(0)
+        private val zobristTable: Array<Array<Int>> = Array( L.I.ordinal * 16 + N.NINE.ordinal + 1) { Array(4, {rand.nextInt()}) }
         private val pieceMapping = arrayOf(
             Piece.Empty,
             Piece.Black,
@@ -38,33 +39,22 @@ class BoardMap : Map<Coordinate, Piece> {
             if (counter != 61) throw Exception("Invalid number of pieces generated.")
             setupKeys.add(Coordinate.offBoard)
             refKeys = setupKeys.toSet()
-
-            initZobrist()
-        }
-
-        private fun initZobrist() {
-            val random = Random(0)
-            for (i in 0 until 61) {
-                for (j in 0 .. 2) {
-                    zobristTable[i * 3 + j] = random.nextInt()
-                }
-            }
         }
     }
 
     override val size: Int = 62
     override val keys: Set<Coordinate> = refKeys
-    private val pieceMap: ByteArray
+    private val data: ByteArray
 
     constructor() {
-       pieceMap = ByteArray( L.I.ordinal * 16 + N.NINE.ordinal + 1 )
+       data = ByteArray(zobristTable.size)
     }
 
     /**
      * Constructs a BoardMap using a ByteArray. For testing purposes only when used outside of the class!
      */
     constructor(pieceMap: ByteArray) {
-        this.pieceMap = pieceMap.clone()
+        this.data = pieceMap.clone()
     }
 
     override val values: Collection<Piece>
@@ -87,13 +77,13 @@ class BoardMap : Map<Coordinate, Piece> {
 
     override operator fun get(key: Coordinate): Piece {
         val offset = key.hashCode()
-        val piece = pieceMap[offset].toInt()
+        val piece = data[offset].toInt()
         return pieceMapping[piece]
     }
 
     operator fun set(key: Coordinate, value: Piece) {
         val offset = key.hashCode()
-        pieceMap[offset] = value.ordinal.toByte()
+        data[offset] = value.ordinal.toByte()
     }
 
     override fun containsKey(key: Coordinate): Boolean {
@@ -111,16 +101,16 @@ class BoardMap : Map<Coordinate, Piece> {
         if (this === other) return true
         if (other !is BoardMap) return false
 
-        pieceMap.forEachIndexed { index, item ->
-            if (other.pieceMap[index] != item) return false
+        data.forEachIndexed { index, item ->
+            if (other.data[index] != item) return false
         }
         return true
     }
 
     override fun hashCode(): Int {
         var hash = 0
-        for (i in 0 until 61) {
-            hash = hash xor zobristTable[i * 3 + pieceMap[i]]
+        for (i in data.indices) {
+            hash = hash xor zobristTable[i][data[i].toInt()]
         }
         return hash
     }
@@ -129,5 +119,5 @@ class BoardMap : Map<Coordinate, Piece> {
         return false
     }
 
-    fun clone(): BoardMap = BoardMap(pieceMap)
+    fun clone(): BoardMap = BoardMap(data)
 }

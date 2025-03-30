@@ -15,7 +15,7 @@ import kotlin.math.min
  */
 class StateSearcher(private val heuristic: Heuristic) {
 
-    private val cache = TranspositionTable(1_000_000)
+    val cache = TranspositionTable(8_000_000)
     var cacheHits = 0
     var cacheMisses = 0
 

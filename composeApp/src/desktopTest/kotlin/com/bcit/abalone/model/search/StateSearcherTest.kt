@@ -29,7 +29,7 @@ class StateSearcherTest {
         var searcher = black
         while (!searcher.terminalTest(state)) {
             val (action, time) = measureTimedValue {
-                searcher.search(state, depth = 3, firstMove)
+                searcher.search(state, depth = 4, firstMove)
             }
             if (blackTurn) {
                 searcher = white
@@ -57,6 +57,7 @@ class StateSearcherTest {
         println("WHITE TIME: $whiteTime")
         println("WHITE CACHE HITS: ${white.cacheHits}")
         println("WHITE CACHE MISSES: ${white.cacheMisses}")
-        println("COLLISIONS: ${TranspositionTable.Key.collisions}")
+        println("BLACK COLLISIONS: ${black.cache.collisions()} / ${black.cache.totalInserted()}")
+        println("WHITE COLLISIONS: ${white.cache.collisions()} / ${white.cache.totalInserted()}")
     }
 }
