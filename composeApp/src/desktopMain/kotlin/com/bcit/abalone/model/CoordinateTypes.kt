@@ -33,15 +33,31 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
         private val coordinates: HashMap<Int, Coordinate> = HashMap()
 
         /**
-         * Initializes the coordinates map.
+         * A list of all adjacent coordinates to each coordinate, to be generated at the start of the program.
+         */
+        private val adjacentMap: HashMap<Coordinate, Map<MoveDirection, Coordinate>> = hashMapOf()
+
+        /**
+         * Initializes the coordinates map and adjacency map.
          */
         init {
             for (l: LetterCoordinate in LetterCoordinate.entries) {
                 for (n: NumberCoordinate in l.min .. l.max) {
-                    coordinates[hash(l, n)] = Coordinate(l, n)
+                    val coord = Coordinate(l, n)
+                    coordinates[hash(l, n)] = coord
+                    val adjacent = hashMapOf(
+                        MoveDirection.PosX to coord.initMove(MoveDirection.PosX),
+                        MoveDirection.NegX to coord.initMove(MoveDirection.NegX),
+                        MoveDirection.PosY to coord.initMove(MoveDirection.PosY),
+                        MoveDirection.NegY to coord.initMove(MoveDirection.NegY),
+                        MoveDirection.PosZ to coord.initMove(MoveDirection.PosZ),
+                        MoveDirection.NegZ to coord.initMove(MoveDirection.NegZ),
+                    )
+                    adjacentMap[coord] = adjacent
                 }
             }
         }
+
 
         /**
          * Returns the Coordinate instance with the given letter and number.
@@ -97,19 +113,24 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
      * @return the new coordinate. Does not mutate the original coordinate.
      */
     fun move(direction: MoveDirection): Coordinate {
+        val newCoordinate = adjacentMap[this]!![direction]!!
+        return newCoordinate
+    }
+
+    private fun initMove(direction: MoveDirection): Coordinate {
         val newCoordinate = when(direction) {
-            MoveDirection.PosX -> moveX(1)
-            MoveDirection.NegX -> moveX(-1)
-            MoveDirection.PosY -> moveY(1)
-            MoveDirection.NegY -> moveY(-1)
-            MoveDirection.PosZ -> moveZ(1)
-            MoveDirection.NegZ -> moveZ(-1)
+            MoveDirection.PosX -> moveX(true)
+            MoveDirection.NegX -> moveX(false)
+            MoveDirection.PosY -> moveY(true)
+            MoveDirection.NegY -> moveY(false)
+            MoveDirection.PosZ -> moveZ(true)
+            MoveDirection.NegZ -> moveZ(false)
         }
         return newCoordinate
     }
 
-    private fun moveX(amount: Int): Coordinate {
-        val newCoordinate = Coordinate(letter, number + amount)
+    private fun moveX(forward: Boolean): Coordinate {
+        val newCoordinate = Coordinate(letter, number + if (forward) 1 else -1)
         if (
             newCoordinate.number == NumberCoordinate.NULL
             || newCoordinate.letter < newCoordinate.number.min
@@ -120,8 +141,8 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
         return newCoordinate
     }
 
-    private fun moveY(amount: Int): Coordinate {
-        val newCoordinate = Coordinate(letter + amount, number)
+    private fun moveY(forward: Boolean): Coordinate {
+        val newCoordinate = Coordinate(letter + if (forward) 1 else -1, number)
         if (
             newCoordinate.letter == LetterCoordinate.NULL
             || newCoordinate.number < newCoordinate.letter.min
@@ -132,8 +153,9 @@ class Coordinate private constructor(val letter: LetterCoordinate, val number: N
         return newCoordinate
     }
 
-    private fun moveZ(amount: Int): Coordinate {
-        val newCoordinate = Coordinate(letter + amount, number + amount)
+    private fun moveZ(forward: Boolean): Coordinate {
+        val amt = if (forward) 1 else -1
+        val newCoordinate = Coordinate(letter + amt, number + amt)
         if (
             newCoordinate.letter == LetterCoordinate.NULL
             || newCoordinate.number == NumberCoordinate.NULL
