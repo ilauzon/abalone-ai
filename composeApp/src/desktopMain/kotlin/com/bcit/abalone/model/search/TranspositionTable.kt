@@ -22,6 +22,10 @@ class TranspositionTable (
 
     override fun put(key: Key, value: Entry): Entry? {
         insertedCount++
+        val current = this[key]
+        if (current != null && value.depth < current.depth) {
+            return null
+        }
         return super.put(key, value)
     }
 

@@ -83,7 +83,7 @@ class StateRepresentation(
     }
 
     override fun hashCode(): Int {
-        return arrayOf(board.hashCode(), movesRemaining).contentHashCode()
+        return board.hashCode() xor movesRemaining
     }
 }
 

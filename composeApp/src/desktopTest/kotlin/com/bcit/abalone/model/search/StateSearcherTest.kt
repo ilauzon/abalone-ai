@@ -13,7 +13,7 @@ class StateSearcherTest {
 
     @Test
     fun testStateSearcher() {
-        val moves = 80
+        val moves = 20
         var state = StateRepresentation(
             board = BoardState(BoardState.Layout.STANDARD),
             movesRemaining = moves,
@@ -29,7 +29,7 @@ class StateSearcherTest {
         var searcher = black
         while (!searcher.terminalTest(state)) {
             val (action, time) = measureTimedValue {
-                searcher.search(state, depth = 4, firstMove)
+                searcher.search(state, depth = 8, firstMove)
             }
             if (blackTurn) {
                 searcher = white
@@ -57,7 +57,5 @@ class StateSearcherTest {
         println("WHITE TIME: $whiteTime")
         println("WHITE CACHE HITS: ${white.cacheHits}")
         println("WHITE CACHE MISSES: ${white.cacheMisses}")
-        println("BLACK COLLISIONS: ${black.cache.collisions()} / ${black.cache.totalInserted()}")
-        println("WHITE COLLISIONS: ${white.cache.collisions()} / ${white.cache.totalInserted()}")
     }
 }
