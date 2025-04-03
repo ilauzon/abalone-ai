@@ -6,8 +6,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App(viewModel: AbaloneViewModel) {
+fun App(viewModel: AbaloneViewModel, onShowConfig: () -> Unit = {}) {
     MaterialTheme {
-        AbaloneGame(viewModel)
+        AbaloneGame(viewModel, onShowConfig)
     }
 }

@@ -466,6 +466,7 @@ class AbaloneViewModel : ViewModel() {
         player1Color = p1Color
         moveLimit = moves
         boardState = mutableStateOf(createBoard(selectedLayout))
+        resetGame()
     }
 
     /**
