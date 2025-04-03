@@ -59,7 +59,7 @@ import kotlinx.coroutines.launch
  * The view for the game board.
  */
 @Composable
-fun AbaloneGame(viewModel: AbaloneViewModel) {
+fun AbaloneGame(viewModel: AbaloneViewModel, onShowConfig: () -> Unit) {
     val board = viewModel.boardState.value
     val currentPlayer = viewModel.currentPlayer.value
     val selectedCells = remember { mutableStateListOf<Cell>() }
@@ -259,6 +259,9 @@ fun AbaloneGame(viewModel: AbaloneViewModel) {
                 }
                 Button(onClick = {viewModel.undoLastMove() }, modifier = Modifier.padding(1.dp)) {
                     Text("Undo")
+                }
+                Button(onClick = { onShowConfig() }, modifier = Modifier.padding(1.dp)){
+                    Text("Setting")
                 }
             }
         }

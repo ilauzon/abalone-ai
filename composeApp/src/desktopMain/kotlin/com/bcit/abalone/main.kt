@@ -25,7 +25,7 @@ fun main() = application {
                 height = 720.dp,
             )
         ) {
-            App(viewModel)
+            App(viewModel, onShowConfig = {showConfigWindow = true})
         }
     }
 
