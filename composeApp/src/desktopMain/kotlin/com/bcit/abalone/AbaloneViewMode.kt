@@ -491,7 +491,7 @@ class AbaloneViewModel : ViewModel() {
             val state = parseState(pair.first, pair.second)
             val parse = System.currentTimeMillis()
             println("AI-1 took ${parse - output}ms parse")
-            val bestAction = searcher1.search(state, depth = 5, firstMove)
+            val bestAction = searcher1.search(state, depth = 6, firstMove)
             println("AI-1 chose action: $bestAction")
             val mid = System.currentTimeMillis()
             println("AI-1 took ${mid - parse}ms search")
@@ -518,7 +518,7 @@ class AbaloneViewModel : ViewModel() {
             val parse = System.currentTimeMillis()
             println("AI-2 took ${parse - output}ms parse")
 
-            val bestAction = searcher2.search(state, depth = 5)
+            val bestAction = searcher2.search(state, depth = 6)
 
             val mid = System.currentTimeMillis()
             println("AI-2 took ${mid - parse}ms search")

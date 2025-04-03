@@ -29,7 +29,7 @@ class StateSearcherTest {
         var searcher = black
         while (!searcher.terminalTest(state)) {
             val (action, time) = measureTimedValue {
-                searcher.search(state, depth = 8, firstMove)
+                searcher.search(state, depth = 6, firstMove)
             }
             if (blackTurn) {
                 searcher = white

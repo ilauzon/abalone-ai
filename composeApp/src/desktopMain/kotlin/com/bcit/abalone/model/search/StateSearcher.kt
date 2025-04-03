@@ -6,6 +6,8 @@ import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.expand
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.result
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -14,6 +16,13 @@ import kotlin.math.min
  * Responsible for performing search on a game tree. The game tree is generated dynamically.
  */
 class StateSearcher(private val heuristic: Heuristic) {
+
+    private data class Context(
+        var actionChosen: Action? = null,
+        val timeStarted: Long = System.currentTimeMillis(),
+        var iterativeDepth: Int = STARTING_DEPTH,
+        var ranOutOfTime: Boolean = false,
+    )
 
     companion object {
         /** The maximum time per move, in milliseconds. */
@@ -24,10 +33,8 @@ class StateSearcher(private val heuristic: Heuristic) {
         private const val STARTING_DEPTH = 1
     }
 
-    val cache = TranspositionTable(8_000_000)
-    private var timeStarted = 0L
-    private var iterativeDepth = STARTING_DEPTH
-    private var ranOutOfTime = false
+    val cache = TranspositionTable(16_000_000)
+    private val statesBeingSearched: ConcurrentHashMap<StateRepresentation, Int> = ConcurrentHashMap()
 
     /** DEBUG DATA */
     var cacheHits = 0
@@ -51,41 +58,62 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @return the "best" action to take from that state.
      */
     fun search(state: StateRepresentation, depth: Int, firstMove: Boolean = false): Action {
-        iterativeDepth = STARTING_DEPTH
-        ranOutOfTime = false
-        timeStarted = System.currentTimeMillis()
-
-        if (depth < iterativeDepth) {
-            throw IllegalArgumentException("depth must be $iterativeDepth or more for search to occur.")
+        if (depth < STARTING_DEPTH) {
+            throw IllegalArgumentException("depth must be $STARTING_DEPTH or more for search to occur.")
         } else if (terminalTest(state)) {
             throw IllegalArgumentException("the given state is a terminal state. No action can be chosen.")
         }
 
+        if (toMove(state) == Piece.Black && firstMove) {
+            val states = expand(state)
+            println("RANDOM FIRST MOVE")
+            return states.random().first
+        }
+
+        val threads: MutableList<Thread> = mutableListOf()
+        val actions: MutableList<Action> = mutableListOf()
+        for (i in 0..7) {
+            threads.add(thread(start = false) {
+                actions.add(threadSearch(state, depth))
+            })
+        }
+        for (thread in threads) {
+            thread.start()
+        }
+        for (thread in threads) {
+            thread.join()
+        }
+        return actions[0]
+    }
+
+    /**
+     * A search task for a single thread. The threading solution is based on the [Simplified ABDADA
+     algorithm by Tom Kerrigan](http://www.tckerrigan.com/Chess/Parallel_Search/Simplified_ABDADA/).
+     */
+    private fun threadSearch(state: StateRepresentation, depth: Int): Action {
         val currentPlayer = toMove(state)
         var bestDepthAction: Pair<Int?, Action?> = null to null
-
+        val context = Context(
+            actionChosen = null,
+            timeStarted = System.currentTimeMillis(),
+            iterativeDepth = STARTING_DEPTH,
+            ranOutOfTime = false,
+        )
         // Black is Max because they move first.
-        while (iterativeDepth <= depth && !ranOutOfTime) {
+        while (context.iterativeDepth <= depth && !context.ranOutOfTime) {
             if (currentPlayer == Piece.Black) {
-                if (firstMove) {
-                    val states = expand(state)
-                    println("RANDOM FIRST MOVE")
-                    return states.random().first
-                } else {
-                    value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, iterativeDepth)
-                }
+                value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, context.iterativeDepth, context)
             } else {
-                value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, iterativeDepth)
+                value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, context.iterativeDepth, context)
             }
-            if (!ranOutOfTime) {
-                println("Completed search to depth $iterativeDepth")
-                bestDepthAction = iterativeDepth to actionChosen!!
-                // if the last cycle took more than a third the time to crunch, don't bother trying another level.
-                if (System.currentTimeMillis() - timeStarted > MAX_MOVE_TIME / 3) {
-                   break
+            if (!context.ranOutOfTime) {
+                bestDepthAction = context.iterativeDepth to context.actionChosen!!
+                // if the last cycle took more than a quarter the time to crunch, don't bother trying another level.
+                if (System.currentTimeMillis() - context.timeStarted > MAX_MOVE_TIME / 4) {
+                    break
                 }
             }
-            iterativeDepth += DEPTH_STEP
+            context.iterativeDepth += DEPTH_STEP
         }
 
         println("Action depth: ${bestDepthAction.first}")
@@ -118,14 +146,14 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @param depth the depth to search to.
      * @return the estimated utility of the given state.
      */
-    private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int): Double {
+    private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int, context: Context): Double {
         if (depth <= 0 || terminalTest(state)) {
             return eval(state)
         }
 
         val cachedValue = getCachedState(state, depth)
         if (cachedValue != null) {
-            actionChosen = cachedValue.action
+            context.actionChosen = cachedValue.action
             return cachedValue.value
         }
 
@@ -158,16 +186,30 @@ class StateSearcher(private val heuristic: Heuristic) {
             "Zero actions were generated from the non-terminal state."
         )
 
-        for ((result, _, action) in sortedStates) {
-            val newV = value(!isMax, result, alpha, beta, depth - 1)
+        var i = 0
+        while (i < sortedStates.size) {
+            val triple = sortedStates[i]
+            val result = triple.first
+            val action = triple.third
+            if (i != 0) {
+                if (statesBeingSearched[result] == null) {
+                    statesBeingSearched[result] = depth
+                } else {
+                    sortedStates.remove(triple)
+                    sortedStates.add(triple)
+                    continue
+                }
+            }
+            val newV = value(!isMax, result, alpha, beta, depth - 1, context)
             if (isMax && newV > v || !isMax && newV < v) {
                 v = newV
                 bestAction = action
             }
-            if (isMax && v > beta || !isMax && v < alpha || outOfTime()) {
-                if (outOfTime()) ranOutOfTime = true
+            if (isMax && v > beta || !isMax && v < alpha || outOfTime(context)) {
+                if (outOfTime(context)) context.ranOutOfTime = true
                 cacheState(state, bestAction!!, v, depth)
-                actionChosen = bestAction
+                statesBeingSearched.remove(result)
+                context.actionChosen = bestAction
                 return v
             }
             if (isMax) {
@@ -175,15 +217,17 @@ class StateSearcher(private val heuristic: Heuristic) {
             } else {
                 beta = min(beta, v)
             }
+            statesBeingSearched.remove(result)
+            i++
         }
 
         cacheState(state, bestAction!!, v, depth)
-        actionChosen = bestAction
+        context.actionChosen = bestAction
         return v
     }
 
-    private fun outOfTime(): Boolean {
-        return System.currentTimeMillis() - timeStarted > (MAX_MOVE_TIME - 500)
+    private fun outOfTime(context: Context): Boolean {
+        return System.currentTimeMillis() - context.timeStarted > (MAX_MOVE_TIME - 500)
     }
 
     /**
