@@ -15,7 +15,21 @@ import kotlin.math.min
  */
 class StateSearcher(private val heuristic: Heuristic) {
 
+    companion object {
+        /** The maximum time per move, in milliseconds. */
+        private const val MAX_MOVE_TIME = 5000
+        /** The iterative deepening increased depth per iteration. */
+        private const val DEPTH_STEP = 1
+        /** The starting depth of search. */
+        private const val STARTING_DEPTH = 1
+    }
+
     val cache = TranspositionTable(8_000_000)
+    private var timeStarted = 0L
+    private var iterativeDepth = STARTING_DEPTH
+    private var ranOutOfTime = false
+
+    /** DEBUG DATA */
     var cacheHits = 0
     var cacheMisses = 0
 
@@ -32,32 +46,50 @@ class StateSearcher(private val heuristic: Heuristic) {
      * strategy.
      *
      * @param state the current state, which the returned action is acting on.
-     * @param depth the depth to search to.
+     * @param depth the maximum depth to search to.
      * @param firstMove if this is the first move of the agent.
      * @return the "best" action to take from that state.
      */
     fun search(state: StateRepresentation, depth: Int, firstMove: Boolean = false): Action {
-        if (depth < 1) {
-            throw IllegalArgumentException("depth must be 1 or more for search to occur.")
+        iterativeDepth = STARTING_DEPTH
+        ranOutOfTime = false
+        timeStarted = System.currentTimeMillis()
+
+        if (depth < iterativeDepth) {
+            throw IllegalArgumentException("depth must be $iterativeDepth or more for search to occur.")
         } else if (terminalTest(state)) {
             throw IllegalArgumentException("the given state is a terminal state. No action can be chosen.")
         }
+
         val currentPlayer = toMove(state)
+        var bestDepthAction: Pair<Int?, Action?> = null to null
 
         // Black is Max because they move first.
-        if (currentPlayer == Piece.Black) {
-            if (firstMove) {
-                val states = expand(state)
-                println("RANDOM FIRST MOVE")
-                return states.random().first
+        while (iterativeDepth <= depth && !ranOutOfTime) {
+            if (currentPlayer == Piece.Black) {
+                if (firstMove) {
+                    val states = expand(state)
+                    println("RANDOM FIRST MOVE")
+                    return states.random().first
+                } else {
+                    value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, iterativeDepth)
+                }
             } else {
-                value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth)
+                value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, iterativeDepth)
             }
-        } else {
-            value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth)
+            if (!ranOutOfTime) {
+                println("Completed search to depth $iterativeDepth")
+                bestDepthAction = iterativeDepth to actionChosen!!
+                // if the last cycle took more than a third the time to crunch, don't bother trying another level.
+                if (System.currentTimeMillis() - timeStarted > MAX_MOVE_TIME / 3) {
+                   break
+                }
+            }
+            iterativeDepth += DEPTH_STEP
         }
 
-        return actionChosen!!
+        println("Action depth: ${bestDepthAction.first}")
+        return bestDepthAction.second!!
     }
 
     /**
@@ -87,7 +119,6 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @return the estimated utility of the given state.
      */
     private fun value(isMax: Boolean, state: StateRepresentation, a: Double, b: Double, depth: Int): Double {
-        val startTime = System.nanoTime()
         if (depth <= 0 || terminalTest(state)) {
             return eval(state)
         }
@@ -107,25 +138,34 @@ class StateSearcher(private val heuristic: Heuristic) {
         val sortedStates = actions(state)
             .map { action ->
                 val newState = result(state, action)
-                Triple(newState, eval(newState), action) }
+                Triple(newState, eval(newState), action)
+            }
             .sortedByDescending { if (isMax) it.second else -it.second }
+            .toMutableList()
 
-//        for ((s, value) in sortedStates) {
-//            print("$value, ")
-//            print(s)
-//        }
-//        println()
-//        println("-----------------------------------------------")
+        val cachedEntry = getCachedState(state, 0)
+        if (cachedEntry != null) {
+            val indexOfBest = sortedStates.indexOfFirst {
+                cachedEntry.action == it.third
+            }
+            if (indexOfBest != -1) {
+                val element = sortedStates.removeAt(indexOfBest)
+                sortedStates.add(0, element)
+            }
+        }
+
         if (sortedStates.isEmpty()) throw IllegalArgumentException(
             "Zero actions were generated from the non-terminal state."
         )
+
         for ((result, _, action) in sortedStates) {
             val newV = value(!isMax, result, alpha, beta, depth - 1)
             if (isMax && newV > v || !isMax && newV < v) {
                 v = newV
                 bestAction = action
             }
-            if (isMax && v > beta || !isMax && v < alpha) {
+            if (isMax && v > beta || !isMax && v < alpha || outOfTime()) {
+                if (outOfTime()) ranOutOfTime = true
                 cacheState(state, bestAction!!, v, depth)
                 actionChosen = bestAction
                 return v
@@ -136,11 +176,14 @@ class StateSearcher(private val heuristic: Heuristic) {
                 beta = min(beta, v)
             }
         }
-//        val endTime = System.nanoTime() // End time
-//        println("Minimax: Depth: $depth, Time: ${(endTime - startTime) / 1_000_000} ms")
+
         cacheState(state, bestAction!!, v, depth)
         actionChosen = bestAction
         return v
+    }
+
+    private fun outOfTime(): Boolean {
+        return System.currentTimeMillis() - timeStarted > (MAX_MOVE_TIME - 500)
     }
 
     /**
