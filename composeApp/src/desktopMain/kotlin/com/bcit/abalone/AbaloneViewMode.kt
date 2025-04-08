@@ -60,6 +60,9 @@ class AbaloneViewModel : ViewModel() {
     var switchPlayerJob: Job? = null
     var waitForHumanHelp by mutableStateOf(false)
 
+    var isBlueWin by mutableStateOf(false)
+    var isRedWin by mutableStateOf(false)
+
 
     data class BoardCycle(val blackState: BoardState, val whiteState: BoardState)
 
@@ -373,6 +376,8 @@ class AbaloneViewModel : ViewModel() {
 
     private fun updatePiecesTaken() {
         if (currentPlayer.value == Piece.Black) redPiecesTaken.value++ else bluePiecesTaken.value++
+        if (redPiecesTaken.value == 6) isRedWin = true
+        if (bluePiecesTaken.value == 6) isBlueWin = true
     }
 
     private fun incrementMoveCount() {

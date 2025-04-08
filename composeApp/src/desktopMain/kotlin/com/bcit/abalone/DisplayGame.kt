@@ -345,6 +345,19 @@ fun AbaloneGame(viewModel: AbaloneViewModel, onShowConfig: () -> Unit) {
             }
         }
     }
+    var winState by remember { mutableStateOf(false) }
+    winState = viewModel.isBlueWin || viewModel.isRedWin
+    // win message
+    if (winState) {
+        val winner = if (viewModel.isBlueWin) "Black" else "White"
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.isBlueWin = false
+                viewModel.isRedWin = false },
+            buttons = {},
+            text = {Text("Congratulations $winner, you win!", fontSize = 20.sp)}
+        )
+    }
 
 }
 
