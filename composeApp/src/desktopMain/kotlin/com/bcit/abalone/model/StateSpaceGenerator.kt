@@ -9,6 +9,7 @@ import com.bcit.abalone.Piece
 class StateSpaceGenerator {
 
    companion object {
+       var debug = false
 
        /**
         * The __Actions__ available to the agent from a given state.
@@ -39,8 +40,6 @@ class StateSpaceGenerator {
 
            // filter player nodes
            val playerCoordinates = board.keys.filter { board[it] == state.currentPlayer }
-
-           // TODO benchmark filtering out player nodes with no available move spaces beforehand.
 
            // add unary actions
            val unaryActions = mutableSetOf<Action>()
@@ -171,6 +170,7 @@ class StateSpaceGenerator {
                }
            }
            actions.addAll(sumitoBinaryActions)
+           if (debug) println(sumitoBinaryActions)
            actions.addAll(sumitoTernaryActions)
 
            return actions
@@ -203,8 +203,8 @@ class StateSpaceGenerator {
            for (coordinate in oldCoordinates) {
                // check if the score should be changed
                val fromCell = oldBoard[coordinate]
-               val toCell = oldBoard[coordinate.move(action.direction)]
-               if (fromCell == state.currentPlayer.opposite() && toCell == Piece.OffBoard) {
+               val toCoord = coordinate.move(action.direction)
+               if (fromCell == state.currentPlayer.opposite() && toCoord == Coordinate.offBoard) {
                    scoreAdded++
                }
                // make the move after checking if the score should be changed

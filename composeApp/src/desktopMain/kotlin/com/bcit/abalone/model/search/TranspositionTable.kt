@@ -26,7 +26,12 @@ class TranspositionTable (
         if (current != null && value.depth < current.depth) {
             return null
         }
-        return super.put(key, value)
+        try {
+            return super.put(key, value)
+        } catch(e: ClassCastException) {
+            println("ERROR: $e")
+            return null
+        }
     }
 
     override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, Entry>?): Boolean {

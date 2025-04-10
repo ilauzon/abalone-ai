@@ -1,6 +1,7 @@
 package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
+import com.bcit.abalone.StateSpaceGenerator
 import com.bcit.abalone.model.Action
 import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
@@ -23,7 +24,6 @@ class StateSearcher(private val heuristic: Heuristic) {
         val timeStarted: Long = System.currentTimeMillis(),
         var iterativeDepth: Int = STARTING_DEPTH,
         var ranOutOfTime: Boolean = false,
-        var winFound: Boolean = false,
     )
 
     companion object {
@@ -70,6 +70,13 @@ class StateSearcher(private val heuristic: Heuristic) {
             return states.random().first
         }
 
+        for ((action, possibleWin) in expand(state)) {
+            if (winFor(possibleWin) == state.currentPlayer) {
+                println("Early return, immediate win found")
+                return action
+            }
+        }
+
         val threads: MutableList<Thread> = mutableListOf()
         val actions: MutableList<Pair<Int?, Action?>> = mutableListOf()
         for (i in 0..<THREADS) {
@@ -109,15 +116,13 @@ class StateSearcher(private val heuristic: Heuristic) {
             iterativeDepth = STARTING_DEPTH,
             ranOutOfTime = false,
         )
+
         // Black is Max because they move first.
         while (context.iterativeDepth <= depth && !context.ranOutOfTime) {
             if (currentPlayer == Piece.Black) {
                 value(true, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, context.iterativeDepth, context)
             } else {
                 value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, context.iterativeDepth, context)
-            }
-            if (context.winFound) {
-                return 1_000_000 to context.actionChosen
             }
             if (!context.ranOutOfTime) {
                 println("Finished depth ${context.iterativeDepth}")
@@ -201,15 +206,6 @@ class StateSearcher(private val heuristic: Heuristic) {
             "Zero actions were generated from the non-terminal state."
         )
 
-        if (context.iterativeDepth - depth == 0) {
-            for ((possibleWin, _, action) in sortedStates) {
-                if (winFor(possibleWin) == state.currentPlayer) {
-                    context.actionChosen = action
-                    context.winFound = true
-                }
-            }
-        }
-
         var i = 0
         while (i < sortedStates.size) {
             val triple = sortedStates[i]
@@ -259,10 +255,15 @@ class StateSearcher(private val heuristic: Heuristic) {
     }
 
     private fun winFor(state: StateRepresentation): Piece? {
-        if (state.players[Piece.Black]!!.score >= 6) {
+        val blackScore = state.players[Piece.Black]!!.score
+        val whiteScore = state.players[Piece.White]!!.score
+        if (blackScore >= 6) {
             return Piece.Black
-        } else if (state.players[Piece.White]!!.score >= 6) {
+        } else if (whiteScore >= 6) {
             return Piece.White
+        } else if (state.movesRemaining == 0) {
+            if (blackScore > whiteScore) return Piece.Black
+            if (whiteScore > blackScore) return Piece.White
         }
         return null
     }
