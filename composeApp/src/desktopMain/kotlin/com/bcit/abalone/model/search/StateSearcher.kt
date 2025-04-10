@@ -7,6 +7,7 @@ import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.expand
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.result
 import java.util.concurrent.ConcurrentHashMap
+import javax.swing.plaf.nimbus.State
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
@@ -22,6 +23,7 @@ class StateSearcher(private val heuristic: Heuristic) {
         val timeStarted: Long = System.currentTimeMillis(),
         var iterativeDepth: Int = STARTING_DEPTH,
         var ranOutOfTime: Boolean = false,
+        var winFound: Boolean = false,
     )
 
     companion object {
@@ -31,20 +33,17 @@ class StateSearcher(private val heuristic: Heuristic) {
         private const val DEPTH_STEP = 1
         /** The starting depth of search. */
         private const val STARTING_DEPTH = 1
+        /** The number of threads to dispatch. */
+        private const val THREADS = 4
     }
 
-    val cache = TranspositionTable(16_000_000)
+    val cache = TranspositionTable(4_000_000)
     private val statesBeingSearched: ConcurrentHashMap<StateRepresentation, Int> = ConcurrentHashMap()
+    val depths: MutableList<Int> = mutableListOf()
 
     /** DEBUG DATA */
     var cacheHits = 0
     var cacheMisses = 0
-
-    /**
-     * A place to store the action chosen by minimax search once it has completed.
-     * Is mutated by calling the search() function.
-     */
-    private var actionChosen: Action? = null
 
     /**
      * Performs minimax search with alpha-beta pruning.
@@ -58,6 +57,7 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @return the "best" action to take from that state.
      */
     fun search(state: StateRepresentation, depth: Int, firstMove: Boolean = false): Action {
+
         if (depth < STARTING_DEPTH) {
             throw IllegalArgumentException("depth must be $STARTING_DEPTH or more for search to occur.")
         } else if (terminalTest(state)) {
@@ -71,8 +71,8 @@ class StateSearcher(private val heuristic: Heuristic) {
         }
 
         val threads: MutableList<Thread> = mutableListOf()
-        val actions: MutableList<Action> = mutableListOf()
-        for (i in 0..7) {
+        val actions: MutableList<Pair<Int?, Action?>> = mutableListOf()
+        for (i in 0..<THREADS) {
             threads.add(thread(start = false) {
                 actions.add(threadSearch(state, depth))
             })
@@ -83,14 +83,24 @@ class StateSearcher(private val heuristic: Heuristic) {
         for (thread in threads) {
             thread.join()
         }
-        return actions[0]
+        var bestAction: Action? = null
+        var bestDepth = 0
+        for ((actionDepth, action) in actions) {
+            if (actionDepth!! > bestDepth) {
+                println(actionDepth)
+                bestAction = action
+                bestDepth = actionDepth
+            }
+        }
+        println("Final action chosen at depth $bestDepth")
+        return bestAction!!
     }
 
     /**
      * A search task for a single thread. The threading solution is based on the [Simplified ABDADA
      algorithm by Tom Kerrigan](http://www.tckerrigan.com/Chess/Parallel_Search/Simplified_ABDADA/).
      */
-    private fun threadSearch(state: StateRepresentation, depth: Int): Action {
+    private fun threadSearch(state: StateRepresentation, depth: Int): Pair<Int?, Action?> {
         val currentPlayer = toMove(state)
         var bestDepthAction: Pair<Int?, Action?> = null to null
         val context = Context(
@@ -106,7 +116,11 @@ class StateSearcher(private val heuristic: Heuristic) {
             } else {
                 value(false, state, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, context.iterativeDepth, context)
             }
+            if (context.winFound) {
+                return 1_000_000 to context.actionChosen
+            }
             if (!context.ranOutOfTime) {
+                println("Finished depth ${context.iterativeDepth}")
                 bestDepthAction = context.iterativeDepth to context.actionChosen!!
                 // if the last cycle took more than a quarter the time to crunch, don't bother trying another level.
                 if (System.currentTimeMillis() - context.timeStarted > MAX_MOVE_TIME / 4) {
@@ -117,7 +131,8 @@ class StateSearcher(private val heuristic: Heuristic) {
         }
 
         println("Action depth: ${bestDepthAction.first}")
-        return bestDepthAction.second!!
+        depths.add(bestDepthAction.first!!)
+        return bestDepthAction
     }
 
     /**
@@ -186,6 +201,15 @@ class StateSearcher(private val heuristic: Heuristic) {
             "Zero actions were generated from the non-terminal state."
         )
 
+        if (context.iterativeDepth - depth == 0) {
+            for ((possibleWin, _, action) in sortedStates) {
+                if (winFor(possibleWin) == state.currentPlayer) {
+                    context.actionChosen = action
+                    context.winFound = true
+                }
+            }
+        }
+
         var i = 0
         while (i < sortedStates.size) {
             val triple = sortedStates[i]
@@ -205,7 +229,11 @@ class StateSearcher(private val heuristic: Heuristic) {
                 v = newV
                 bestAction = action
             }
-            if (isMax && v > beta || !isMax && v < alpha || outOfTime(context)) {
+            if (
+                isMax && v > beta
+                || !isMax && v < alpha
+                || outOfTime(context)
+            ) {
                 if (outOfTime(context)) context.ranOutOfTime = true
                 cacheState(state, bestAction!!, v, depth)
                 statesBeingSearched.remove(result)
@@ -228,6 +256,15 @@ class StateSearcher(private val heuristic: Heuristic) {
 
     private fun outOfTime(context: Context): Boolean {
         return System.currentTimeMillis() - context.timeStarted > (MAX_MOVE_TIME - 500)
+    }
+
+    private fun winFor(state: StateRepresentation): Piece? {
+        if (state.players[Piece.Black]!!.score >= 6) {
+            return Piece.Black
+        } else if (state.players[Piece.White]!!.score >= 6) {
+            return Piece.White
+        }
+        return null
     }
 
     /**

@@ -13,7 +13,7 @@ class StateSearcherTest {
 
     @Test
     fun testStateSearcher() {
-        val moves = 20
+        val moves = 40
         var state = StateRepresentation(
             board = BoardState(BoardState.Layout.STANDARD),
             movesRemaining = moves,
@@ -29,7 +29,7 @@ class StateSearcherTest {
         var searcher = black
         while (!searcher.terminalTest(state)) {
             val (action, time) = measureTimedValue {
-                searcher.search(state, depth = 6, firstMove)
+                searcher.search(state, depth = 4, firstMove)
             }
             if (blackTurn) {
                 searcher = white
@@ -51,11 +51,12 @@ class StateSearcherTest {
             blackTurn = !blackTurn
         }
         println("TOTAL TIME FOR MATCH WITH $moves MOVES: $totalTime")
-        println("BLACK TIME: $blackTime")
-        println("BLACK CACHE HITS: ${black.cacheHits}")
-        println("BLACK CACHE MISSES: ${black.cacheMisses}")
-        println("WHITE TIME: $whiteTime")
-        println("WHITE CACHE HITS: ${white.cacheHits}")
-        println("WHITE CACHE MISSES: ${white.cacheMisses}")
+        println("AVERAGE DEPTH: ${(black.depths.average() + white.depths.average()) / 2}")
+//        println("BLACK TIME: $blackTime")
+//        println("BLACK CACHE HITS: ${black.cacheHits}")
+//        println("BLACK CACHE MISSES: ${black.cacheMisses}")
+//        println("WHITE TIME: $whiteTime")
+//        println("WHITE CACHE HITS: ${white.cacheHits}")
+//        println("WHITE CACHE MISSES: ${white.cacheMisses}")
     }
 }

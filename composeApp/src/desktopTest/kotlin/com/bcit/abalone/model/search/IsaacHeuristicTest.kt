@@ -95,24 +95,41 @@ class IsaacHeuristicTest {
     @Test
     fun testCase() {
         fun byteArrayOfInts(vararg ints: Int) = ByteArray(ints.size) { pos -> ints[pos].toByte() }
+        val board = BoardMap()
+        board[Coordinate.get(L.I, N.SIX)] = Piece.White
+        board[Coordinate.get(L.I, N.EIGHT)] = Piece.Black
+        board[Coordinate.get(L.I, N.NINE)] = Piece.Black
+        board[Coordinate.get(L.H, N.FOUR)] = Piece.White
+        board[Coordinate.get(L.H, N.FIVE)] = Piece.White
+        board[Coordinate.get(L.H, N.SIX)] = Piece.White
+        board[Coordinate.get(L.H, N.EIGHT)] = Piece.Black
+        board[Coordinate.get(L.H, N.NINE)] = Piece.Black
+        board[Coordinate.get(L.G, N.FOUR)] = Piece.White
+        board[Coordinate.get(L.G, N.FIVE)] = Piece.White
+        board[Coordinate.get(L.G, N.SIX)] = Piece.White
+        board[Coordinate.get(L.G, N.SEVEN)] = Piece.Black
+        board[Coordinate.get(L.G, N.EIGHT)] = Piece.Black
+        board[Coordinate.get(L.F, N.SIX)] = Piece.Black
+        board[Coordinate.get(L.D, N.THREE)] = Piece.Black
+        board[Coordinate.get(L.D, N.FIVE)] = Piece.Black
+        board[Coordinate.get(L.C, N.FIVE)] = Piece.White
+        board[Coordinate.get(L.C, N.SIX)] = Piece.White
+        board[Coordinate.get(L.C, N.SEVEN)] = Piece.White
+        board[Coordinate.get(L.B, N.TWO)] = Piece.White
+        board[Coordinate.get(L.B, N.THREE)] = Piece.White
+        board[Coordinate.get(L.B, N.FOUR)] = Piece.White
+        board[Coordinate.get(L.B, N.FIVE)] = Piece.White
         val state = StateRepresentation(
-            board = BoardState(BoardMap(byteArrayOfInts(
-                    0,0,0,0,0,
-                   2,2,2,2,2,0,
-                  0,0,2,2,2,2,0,
-                 0,0,2,2,2,0,0,0,
-                0,2,0,1,1,1,1,2,0,
-                 0,0,1,1,1,1,0,0,
-                  0,1,1,1,1,0,0,
-                   0,1,1,0,0,0,
-                    0,0,0,0,0,
-                3,
-            ))),
-            movesRemaining = 10,
-            currentPlayer = Piece.Black
+            board = BoardState(board),
+            players = mapOf(
+                Piece.Black to Player(0, 5000),
+                Piece.White to Player(5, 5000)
+            ),
+            movesRemaining = 49,
+            currentPlayer = Piece.White
         )
         println(state.toStringPretty())
-        val bestAction = StateSearcher(IsaacHeuristic()).search(state, depth = 3)
+        val bestAction = StateSearcher(IsaacHeuristic()).search(state, depth = 6)
         println(bestAction)
     }
 }
