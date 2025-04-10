@@ -12,8 +12,27 @@ import kotlin.time.measureTimedValue
 class StateSearcherTest {
 
     @Test
-    fun testStateSearcher() {
-        val moves = 40
+    fun test4Threads() {
+        testStateSearcher(4)
+    }
+
+    @Test
+    fun test6Threads() {
+        testStateSearcher(6)
+    }
+
+    @Test
+    fun test8Threads() {
+        testStateSearcher(8)
+    }
+
+    @Test
+    fun test12Threads() {
+        testStateSearcher(12)
+    }
+
+    fun testStateSearcher(threadCount: Int) {
+        val moves = 20
         var state = StateRepresentation(
             board = BoardState(BoardState.Layout.STANDARD),
             movesRemaining = moves,
@@ -29,7 +48,7 @@ class StateSearcherTest {
         var searcher = black
         while (!searcher.terminalTest(state)) {
             val (action, time) = measureTimedValue {
-                searcher.search(state, depth = 4, firstMove)
+                searcher.search(state, depth = 6, firstMove, threadCount)
             }
             if (blackTurn) {
                 searcher = white

@@ -1,14 +1,12 @@
 package com.bcit.abalone.model.search
 
 import com.bcit.abalone.Piece
-import com.bcit.abalone.StateSpaceGenerator
 import com.bcit.abalone.model.Action
 import com.bcit.abalone.model.StateRepresentation
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.actions
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.expand
 import com.bcit.abalone.model.StateSpaceGenerator.Companion.result
 import java.util.concurrent.ConcurrentHashMap
-import javax.swing.plaf.nimbus.State
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
@@ -33,8 +31,6 @@ class StateSearcher(private val heuristic: Heuristic) {
         private const val DEPTH_STEP = 1
         /** The starting depth of search. */
         private const val STARTING_DEPTH = 1
-        /** The number of threads to dispatch. */
-        private const val THREADS = 4
     }
 
     val cache = TranspositionTable(4_000_000)
@@ -56,7 +52,7 @@ class StateSearcher(private val heuristic: Heuristic) {
      * @param firstMove if this is the first move of the agent.
      * @return the "best" action to take from that state.
      */
-    fun search(state: StateRepresentation, depth: Int, firstMove: Boolean = false): Action {
+    fun search(state: StateRepresentation, depth: Int, firstMove: Boolean = false, threadCount: Int = 4): Action {
 
         if (depth < STARTING_DEPTH) {
             throw IllegalArgumentException("depth must be $STARTING_DEPTH or more for search to occur.")
@@ -79,7 +75,7 @@ class StateSearcher(private val heuristic: Heuristic) {
 
         val threads: MutableList<Thread> = mutableListOf()
         val actions: MutableList<Pair<Int?, Action?>> = mutableListOf()
-        for (i in 0..<THREADS) {
+        for (i in 0..<threadCount) {
             threads.add(thread(start = false) {
                 actions.add(threadSearch(state, depth))
             })
