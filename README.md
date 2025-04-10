@@ -1,4 +1,7 @@
-# How to run the Game Program:
+# Group 2 Source Code
+The bulk of the source code can be found in ./composeApp/src/desktopMain/kotlin/com/bcit/abalone 
+
+## How to run the Game Program:
 
 1. From the project root, navigate to ./composeApp/build/compose/binaries/main/app/com.bcit.abalone/
 2. Run "com.bcit.abalone.exe".
@@ -6,7 +9,7 @@
 4. If choosing a mode where the bot moves first, click "Start" to start the game, otherwise 
 start your turn and enjoy the game!
 
-# How to run the State Space Generator:
+## How to run the State Space Generator:
 
 1. From the project root, navigate to ./composeApp/build/compose/binaries/main/app/com.bcit.abalone/
 2. Put any testing .input files to be run inside that folder.
@@ -15,12 +18,12 @@ start your turn and enjoy the game!
 5. Click on the file you want to choose then click the "Enter" button.
 6. The output files wil be generated in the same folder as the executable.
 
-# How to compile the project from source:
+## How to compile the project from source:
 
-## Dependencies:
+### Dependencies:
 - JDK >= version 21
 
-## Instructions:
+### Instructions:
 1. In the project's root directory, comp3981-abalone/, run "gradlew.bat createDistributable"
 2. Navigate to ./composeApp/build/compose/binaries/main/app/com.bcit.abalone/ to see the compiled executable "com.bcit.abalone.exe".
 3. To use the executable, follow the steps to run the State Space Generator as described above.
