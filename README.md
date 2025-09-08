@@ -1,6 +1,4 @@
-# Group 2 Source Code
-The bulk of the source code can be found in ./composeApp/src/desktopMain/kotlin/com/bcit/abalone 
-
+# Abalone AI
 ## How to run the Game Program:
 
 1. From the project root, navigate to ./composeApp/build/compose/binaries/main/app/com.bcit.abalone/
